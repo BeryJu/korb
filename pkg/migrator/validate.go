@@ -42,5 +42,9 @@ func (m *Migrator) validateSourcePVC() *v1.PersistentVolumeClaim {
 			l.Panic("Destination PVC is smaller than source.")
 		}
 	}
+	if m.DestPVCName == "" {
+		m.log.Debug("No new Name given, using old name")
+		m.DestPVCName = pvc.Name
+	}
 	return pvc
 }
