@@ -22,16 +22,19 @@ var force bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:  "k8s-storage-mover",
+	Use:  "k8s-storage-mover [pvc [pvc]]",
 	Long: `Move data between Kubernetes PVCs on different Storage Classes.`,
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		m := migrator.New(kubeConfig)
-		m.Force = force
+		for _, pvc := range args {
+			m := migrator.New(kubeConfig)
+			m.Force = force
 
-		m.DestPVCSize = pvcNewSize
-		m.DestPVCStorageClass = pvcNewStorageClass
-		m.SourcePVCName = args[0]
-		m.Run()
+			m.DestPVCSize = pvcNewSize
+			m.DestPVCStorageClass = pvcNewStorageClass
+			m.SourcePVCName = pvc
+			m.Run()
+		}
 	},
 }
 
