@@ -63,6 +63,11 @@ func (m *MoverJob) Start() *MoverJob {
 		},
 		Spec: batchv1.JobSpec{
 			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						"sidecar.istio.io/inject": "false",
+					},
+				},
 				Spec: corev1.PodSpec{
 					Volumes:       volumes,
 					RestartPolicy: corev1.RestartPolicyOnFailure,
