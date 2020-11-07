@@ -65,7 +65,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	c.tempMover.Namespace = c.kNS
 	c.tempMover.SourceVolume = sourcePVC
 	c.tempMover.DestVolume = c.TempDestPVC
-	c.tempMover.Name = fmt.Sprintf("k8s-mover-job-%s", sourcePVC.UID)
+	c.tempMover.Name = fmt.Sprintf("korb-job-%s", sourcePVC.UID)
 
 	c.log.Debug("Stage 3, starting job and waiting for copy")
 	err = c.tempMover.Start().Wait(c.MoveTimeout)
@@ -96,7 +96,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	c.finalMover.Namespace = c.kNS
 	c.finalMover.SourceVolume = c.TempDestPVC
 	c.finalMover.DestVolume = c.DestPVC
-	c.finalMover.Name = fmt.Sprintf("k8s-mover-job-%s", tempDestInst.UID)
+	c.finalMover.Name = fmt.Sprintf("korb-job-%s", tempDestInst.UID)
 
 	c.log.Debug("Stage 7, starting job and waiting for copy")
 	err = c.finalMover.Start().Wait(c.MoveTimeout)

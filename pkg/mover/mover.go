@@ -10,6 +10,7 @@ import (
 
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
@@ -101,7 +102,22 @@ func (m *MoverJob) Start() *MoverJob {
 }
 
 func (m *MoverJob) Wait(timeout time.Duration) error {
-	err := wait.Poll(2*time.Second, timeout, func() (bool, error) {
+	// First we wait for all pods to be running
+	var runningPod v1.Pod
+	err := wait.Poll(2*time.Second, 60*time.Second, func() (bool, error) {
+		pods := m.getPods()
+		if len(pods) != 1 {
+			return false, nil
+		}
+		pod := pods[0]
+		if pod.Status.Phase == v1.PodRunning {
+			runningPod = pod
+			return true, nil
+		}
+		return false, nil
+	})
+
+	err = wait.Poll(2*time.Second, timeout, func() (bool, error) {
 		job, err := m.kClient.BatchV1().Jobs(m.Namespace).Get(context.TODO(), m.kJob.Name, metav1.GetOptions{})
 		if err != nil {
 			return false, err
@@ -120,15 +136,24 @@ func (m *MoverJob) Wait(timeout time.Duration) error {
 	return err
 }
 
+func (m *MoverJob) getPods() []v1.Pod {
+	selector := fmt.Sprintf("job-name=%s", m.Name)
+	pods, err := m.kClient.CoreV1().Pods(m.Namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: selector})
+	if err != nil {
+		m.log.WithError(err).Warning("Failed to get pods")
+		return make([]v1.Pod, 0)
+	}
+	return pods.Items
+}
+
 func (m *MoverJob) Cleanup() error {
 	err := m.kClient.BatchV1().Jobs(m.Namespace).Delete(context.TODO(), m.Name, metav1.DeleteOptions{})
 	if err != nil {
 		m.log.WithError(err).Debug("Failed to delete job")
 		return err
 	}
-	selector := fmt.Sprintf("job-name=%s", m.Name)
-	pods, err := m.kClient.CoreV1().Pods(m.Namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: selector})
-	for _, pod := range pods.Items {
+	pods := m.getPods()
+	for _, pod := range pods {
 		m.kClient.CoreV1().Pods(m.Namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
 	}
 	return nil

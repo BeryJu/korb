@@ -37,17 +37,17 @@ WARN[0000] This strategy assumes you've stopped all pods accessing this data.  c
 DEBU[0000] Stage 1, creating temporary PVC               component=strategy
 DEBU[0002] Stage 2, creating mover job                   component=strategy
 DEBU[0002] Stage 3, starting job and waiting for copy    component=strategy
-DEBU[0004] Waiting for job to finish...                  component=mover-job job-name=k8s-mover-job-9820bc60-ba26-43f0-99ba-cd4385f6bdbf
-DEBU[0006] Waiting for job to finish...                  component=mover-job job-name=k8s-mover-job-9820bc60-ba26-43f0-99ba-cd4385f6bdbf
+DEBU[0004] Waiting for job to finish...                  component=mover-job job-name=korb-job-9820bc60-ba26-43f0-99ba-cd4385f6bdbf
+DEBU[0006] Waiting for job to finish...                  component=mover-job job-name=korb-job-9820bc60-ba26-43f0-99ba-cd4385f6bdbf
 [...]
 DEBU[0040] Cleaning up successful job                    component=mover-job
 DEBU[0040] Stage 4, Deleting original PVC                component=strategy
 DEBU[0042] Stage 5, Create final destination PVC         component=strategy
 DEBU[0042] Stage 6, Create mover job to final destination  component=strategy
 DEBU[0042] Stage 7, starting job and waiting for copy    component=strategy
-DEBU[0044] Waiting for job to finish...                  component=mover-job job-name=k8s-mover-job-daa07336-d4ee-48be-afc8-ed2592537ac2
-DEBU[0046] Waiting for job to finish...                  component=mover-job job-name=k8s-mover-job-daa07336-d4ee-48be-afc8-ed2592537ac2
-DEBU[0048] Waiting for job to finish...                  component=mover-job job-name=k8s-mover-job-daa07336-d4ee-48be-afc8-ed2592537ac2
+DEBU[0044] Waiting for job to finish...                  component=mover-job job-name=korb-job-daa07336-d4ee-48be-afc8-ed2592537ac2
+DEBU[0046] Waiting for job to finish...                  component=mover-job job-name=korb-job-daa07336-d4ee-48be-afc8-ed2592537ac2
+DEBU[0048] Waiting for job to finish...                  component=mover-job job-name=korb-job-daa07336-d4ee-48be-afc8-ed2592537ac2
 [...]
 DEBU[0078] Cleaning up successful job                    component=mover-job
 DEBU[0078] Stage 8, Deleting temporary PVC               component=strategy
