@@ -3,6 +3,8 @@ package mover
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
 	"time"
 
 	"github.com/BeryJu/korb/pkg/config"
@@ -101,6 +103,19 @@ func (m *MoverJob) Start() *MoverJob {
 	return m
 }
 
+func (m *MoverJob) followLogs(pod v1.Pod) {
+	req := m.kClient.CoreV1().Pods(m.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{Follow: true})
+	podLogs, err := req.Stream(context.Background())
+	if err != nil {
+		m.log.WithError(err).Warning("error opening log stream")
+	}
+	defer podLogs.Close()
+
+	for {
+		io.Copy(os.Stdout, podLogs)
+	}
+}
+
 func (m *MoverJob) Wait(timeout time.Duration) error {
 	// First we wait for all pods to be running
 	var runningPod v1.Pod
@@ -116,6 +131,7 @@ func (m *MoverJob) Wait(timeout time.Duration) error {
 		}
 		return false, nil
 	})
+	go m.followLogs(runningPod)
 
 	err = wait.Poll(2*time.Second, timeout, func() (bool, error) {
 		job, err := m.kClient.BatchV1().Jobs(m.Namespace).Get(context.TODO(), m.kJob.Name, metav1.GetOptions{})
@@ -123,12 +139,11 @@ func (m *MoverJob) Wait(timeout time.Duration) error {
 			return false, err
 		}
 		if job.Status.Succeeded != int32(len(job.Spec.Template.Spec.Containers)) {
-			fmt.Printf("\rWaiting for job to finish...")
 			return false, nil
 		}
 		return true, nil
 	})
-	fmt.Printf("\n")
+
 	if err == nil {
 		// Job was run successfully, so we delete it to cleanup
 		m.log.Debug("Cleaning up successful job")
