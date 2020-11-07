@@ -42,7 +42,7 @@ func (c *CopyTwiceNameStrategy) Description() string {
 }
 
 func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemplate *v1.PersistentVolumeClaim) error {
-	c.setTimeout(sourcePVC)
+	c.setTimeout(destTemplate)
 	c.log.Warning("This strategy assumes you've stopped all pods accessing this data.")
 	suffix := time.Now().Unix()
 	tempDest := destTemplate.DeepCopy()
@@ -130,8 +130,8 @@ func (c *CopyTwiceNameStrategy) Cleanup() error {
 	return nil
 }
 
-func (c *CopyTwiceNameStrategy) setTimeout(sourcePVC *v1.PersistentVolumeClaim) {
-	sizeInByes, _ := sourcePVC.Spec.Resources.Requests.Storage().AsInt64()
+func (c *CopyTwiceNameStrategy) setTimeout(pvc *v1.PersistentVolumeClaim) {
+	sizeInByes, _ := pvc.Spec.Resources.Requests.Storage().AsInt64()
 	sizeInGB := sizeInByes / 1024 / 1024 / 1024
 	c.MoveTimeout = time.Duration(sizeInGB*60) * time.Second
 	c.log.WithField("timeout", c.MoveTimeout).Debug("Set timeout from PVC size")
