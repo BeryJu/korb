@@ -17,6 +17,7 @@ var kubeConfig string
 
 var pvcNewStorageClass string
 var pvcNewSize string
+var pvcNewName string
 
 var force bool
 
@@ -32,6 +33,8 @@ var rootCmd = &cobra.Command{
 
 			m.DestPVCSize = pvcNewSize
 			m.DestPVCStorageClass = pvcNewStorageClass
+			m.DestPVCName = pvcNewName
+
 			m.SourcePVCName = pvc
 			m.Run()
 		}
@@ -57,6 +60,7 @@ func init() {
 	}
 
 	rootCmd.Flags().StringVar(&pvcNewStorageClass, "new-pvc-storage-class", "", "Storage class to use for the new PVC. If empty, the storage class of the source will be used.")
+	rootCmd.Flags().StringVar(&pvcNewName, "new-pvc-name", "", "Name for the new PVC. If empty, same name will be reused.")
 	rootCmd.Flags().StringVar(&pvcNewSize, "new-pvc-size", "", "Size for the new PVC. If empty, the size of the source will be used. Accepts formats like used in Kubernetes Manifests (Gi, Ti, ...)")
 
 	rootCmd.Flags().BoolVar(&force, "force", false, "Ignore warning which would normally halt the tool during validation.")

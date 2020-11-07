@@ -13,6 +13,7 @@ type Migrator struct {
 
 	DestPVCStorageClass string
 	DestPVCSize         string
+	DestPVCName         string
 
 	Force bool
 
@@ -67,6 +68,7 @@ func (m *Migrator) Run() {
 		m.log.Debug(compatibleStrategy.Description())
 	}
 	destTemplate := m.GetDestinationPVCTemplate(sourcePVC)
+	destTemplate.Name = m.DestPVCName
 	if len(compatibleStrategies) == 1 {
 		m.log.Debug("Only one compatible strategy, running")
 		err := compatibleStrategies[0].Do(sourcePVC, destTemplate)
