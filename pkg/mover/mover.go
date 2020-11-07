@@ -30,7 +30,7 @@ type MoverJob struct {
 func NewMoverJob(client *kubernetes.Clientset) *MoverJob {
 	return &MoverJob{
 		kClient: client,
-		log:     log.WithField("compoennt", "mover-job"),
+		log:     log.WithField("component", "mover-job"),
 	}
 }
 

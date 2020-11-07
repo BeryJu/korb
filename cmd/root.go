@@ -23,7 +23,7 @@ var force bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:  "k8s-storage-mover [pvc [pvc]]",
+	Use:  "korb [pvc [pvc]]",
 	Long: `Move data between Kubernetes PVCs on different Storage Classes.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
