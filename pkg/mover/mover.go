@@ -110,6 +110,7 @@ func (m *MoverJob) followLogs(pod v1.Pod) {
 	podLogs, err := req.Stream(context.Background())
 	if err != nil {
 		m.log.WithError(err).Warning("error opening log stream")
+		return
 	}
 	defer podLogs.Close()
 	prefixReader := prefixer.New(podLogs, "[mover logs]: ")
@@ -132,6 +133,7 @@ func (m *MoverJob) Wait(timeout time.Duration) error {
 			runningPod = pod
 			return true, nil
 		}
+		m.log.WithField("phase", pod.Status.Phase).Debug("Pod not in correct state yet")
 		return false, nil
 	})
 	go m.followLogs(runningPod)
