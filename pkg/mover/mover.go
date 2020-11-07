@@ -112,7 +112,7 @@ func (m *MoverJob) followLogs(pod v1.Pod) {
 		m.log.WithError(err).Warning("error opening log stream")
 	}
 	defer podLogs.Close()
-	prefixReader := prefixer.New(podLogs, "mover logs: ")
+	prefixReader := prefixer.New(podLogs, "[mover logs]: ")
 
 	for {
 		io.Copy(os.Stdout, prefixReader)
