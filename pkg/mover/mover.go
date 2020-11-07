@@ -107,7 +107,7 @@ func (m *MoverJob) Wait(timeout time.Duration) error {
 			return false, err
 		}
 		if job.Status.Succeeded != int32(len(job.Spec.Template.Spec.Containers)) {
-			m.log.WithField("job-name", job.Name).Debug("Waiting for job to finish...")
+			fmt.Printf("\rWaiting for job to finish...")
 			return false, nil
 		}
 		return true, nil
