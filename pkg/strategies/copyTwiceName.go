@@ -44,8 +44,9 @@ func (c *CopyTwiceNameStrategy) Description() string {
 func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemplate *v1.PersistentVolumeClaim) error {
 	c.setTimeout(sourcePVC)
 	c.log.Warning("This strategy assumes you've stopped all pods accessing this data.")
+	suffix := time.Now().Unix()
 	tempDest := destTemplate.DeepCopy()
-	tempDest.Name = fmt.Sprintf("%s-copy-temp", tempDest.Name)
+	tempDest.Name = fmt.Sprintf("%s-copy-%d", tempDest.Name, suffix)
 
 	c.log.Debug("Stage 1, creating temporary PVC")
 	tempDestInst, err := c.kClient.CoreV1().PersistentVolumeClaims(c.kNS).Create(context.TODO(), tempDest, metav1.CreateOptions{})
