@@ -118,7 +118,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 }
 
 func (c *CopyTwiceNameStrategy) Cleanup() error {
-	c.log.Warning("Cleaning up...")
+	c.log.Info("Cleaning up...")
 	for _, pvc := range c.pvcsToDelete {
 		err := c.kClient.CoreV1().PersistentVolumeClaims(c.kNS).Delete(context.Background(), pvc.Name, metav1.DeleteOptions{})
 		if err != nil {

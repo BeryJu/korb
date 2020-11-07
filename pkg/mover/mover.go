@@ -77,9 +77,8 @@ func (m *MoverJob) Start() *MoverJob {
 					RestartPolicy: corev1.RestartPolicyOnFailure,
 					Containers: []corev1.Container{
 						{
-							Name:            "mover",
-							Image:           config.DockerImage,
-							ImagePullPolicy: v1.PullAlways,
+							Name:  "mover",
+							Image: config.DockerImage,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "source",

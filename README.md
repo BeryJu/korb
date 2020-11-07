@@ -24,33 +24,42 @@ requires at least 1 arg(s), only received 0
 ### Example
 
 ```
-~ ./korb-linux-amd64 --new-pvc-storage-class ontap-ssd gitea-pvc
+~ ./korb --new-pvc-storage-class ontap-ssd redis-data-redis-master-0
 DEBU[0000] Created client from kubeconfig                component=migrator kubeconfig=/home/jens/.kube/config
-DEBU[0000] Got current namespace                         component=migrator namespace=gitea
-DEBU[0000] Got Source PVC                                component=migrator name=gitea-pvc uid=9820bc60-ba26-43f0-99ba-cd4385f6bdbf
+DEBU[0000] Got current namespace                         component=migrator namespace=prod-beryju-org
+DEBU[0000] Got Source PVC                                component=migrator name=redis-data-redis-master-0 uid=e4b5476f-b965-4e81-bfee-d7cbbf4f6317
 DEBU[0000] No new Name given, using old name             component=migrator
 DEBU[0000] Compatible Strategies:                        component=migrator
 DEBU[0000] Copy the PVC to the new Storage class and with new size and a new name, delete the old PVC, and copy it back to the old name.  component=migrator
 DEBU[0000] Only one compatible strategy, running         component=migrator
-DEBU[0000] Set timeout from PVC size                     component=strategy timeout=20m0s
-WARN[0000] This strategy assumes you've stopped all pods accessing this data.  component=strategy
-DEBU[0000] Stage 1, creating temporary PVC               component=strategy
-DEBU[0002] Stage 2, creating mover job                   component=strategy
-DEBU[0002] Stage 3, starting job and waiting for copy    component=strategy
-DEBU[0004] Waiting for job to finish...                  component=mover-job job-name=korb-job-9820bc60-ba26-43f0-99ba-cd4385f6bdbf
-DEBU[0006] Waiting for job to finish...                  component=mover-job job-name=korb-job-9820bc60-ba26-43f0-99ba-cd4385f6bdbf
+DEBU[0000] Set timeout from PVC size                     component=strategy strategy=copy-twice-name timeout=8m0s
+WARN[0000] This strategy assumes you've stopped all pods accessing this data.  component=strategy strategy=copy-twice-name
+DEBU[0000] creating temporary PVC                        component=strategy stage=1 strategy=copy-twice-name
+DEBU[0002] starting mover job                            component=strategy stage=2 strategy=copy-twice-name
+DEBU[0004] Pod not in correct state yet                  component=mover-job phase=Pending
+DEBU[0006] Pod not in correct state yet                  component=mover-job phase=Pending
 [...]
-DEBU[0040] Cleaning up successful job                    component=mover-job
-DEBU[0040] Stage 4, Deleting original PVC                component=strategy
-DEBU[0042] Stage 5, Create final destination PVC         component=strategy
-DEBU[0042] Stage 6, Create mover job to final destination  component=strategy
-DEBU[0042] Stage 7, starting job and waiting for copy    component=strategy
-DEBU[0044] Waiting for job to finish...                  component=mover-job job-name=korb-job-daa07336-d4ee-48be-afc8-ed2592537ac2
-DEBU[0046] Waiting for job to finish...                  component=mover-job job-name=korb-job-daa07336-d4ee-48be-afc8-ed2592537ac2
-DEBU[0048] Waiting for job to finish...                  component=mover-job job-name=korb-job-daa07336-d4ee-48be-afc8-ed2592537ac2
+[mover logs]: sending incremental file list
+[mover logs]: ./
+[mover logs]: appendonly.aof
+              0 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=1/3)
+[mover logs]: dump.rdb
+            175 100%    0.00kB/s    0:00:00 (xfr#2, to-chk=0/3)
+DEBU[0022] Cleaning up successful job                    component=mover-job
+DEBU[0022] deleting original PVC                         component=strategy stage=3 strategy=copy-twice-name
+DEBU[0024] creating final destination PVC                component=strategy stage=4 strategy=copy-twice-name
+DEBU[0024] starting mover job to final PVC               component=strategy stage=5 strategy=copy-twice-name
+DEBU[0026] Pod not in correct state yet                  component=mover-job phase=Pending
+DEBU[0028] Pod not in correct state yet                  component=mover-job phase=Pending
 [...]
-DEBU[0078] Cleaning up successful job                    component=mover-job
-DEBU[0078] Stage 8, Deleting temporary PVC               component=strategy
-INFO[0080] And we're done                                component=strategy
-WARN[0080] Cleaning up...                                component=strategy
+[mover logs]: sending incremental file list
+[mover logs]: ./
+[mover logs]: appendonly.aof
+              0 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=1/3)
+[mover logs]: dump.rdb
+            175 100%    0.00kB/s    0:00:00 (xfr#2, to-chk=0/3)
+DEBU[0048] Cleaning up successful job                    component=mover-job
+DEBU[0048] deleting temporary PVC                        component=strategy stage=6 strategy=copy-twice-name
+INFO[0050] And we're done                                component=strategy strategy=copy-twice-name
+INFO[0050] Cleaning up...                                component=strategy strategy=copy-twice-name
 ```
