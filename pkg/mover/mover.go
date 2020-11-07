@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/BeryJu/korb/pkg/config"
+	"github.com/goware/prefixer"
 	log "github.com/sirupsen/logrus"
 
 	batchv1 "k8s.io/api/batch/v1"
@@ -76,8 +77,9 @@ func (m *MoverJob) Start() *MoverJob {
 					RestartPolicy: corev1.RestartPolicyOnFailure,
 					Containers: []corev1.Container{
 						{
-							Name:  "mover",
-							Image: config.DockerImage,
+							Name:            "mover",
+							Image:           config.DockerImage,
+							ImagePullPolicy: v1.PullAlways,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "source",
@@ -110,9 +112,10 @@ func (m *MoverJob) followLogs(pod v1.Pod) {
 		m.log.WithError(err).Warning("error opening log stream")
 	}
 	defer podLogs.Close()
+	prefixReader := prefixer.New(podLogs, "mover logs: ")
 
 	for {
-		io.Copy(os.Stdout, podLogs)
+		io.Copy(os.Stdout, prefixReader)
 	}
 }
 
@@ -125,7 +128,7 @@ func (m *MoverJob) Wait(timeout time.Duration) error {
 			return false, nil
 		}
 		pod := pods[0]
-		if pod.Status.Phase == v1.PodRunning {
+		if pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded {
 			runningPod = pod
 			return true, nil
 		}
