@@ -128,6 +128,7 @@ func (m *MoverJob) Wait(timeout time.Duration) error {
 		}
 		return true, nil
 	})
+	fmt.Printf("\n")
 	if err == nil {
 		// Job was run successfully, so we delete it to cleanup
 		m.log.Debug("Cleaning up successful job")
