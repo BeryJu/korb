@@ -8,7 +8,7 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.1
 	k8s.io/api v0.19.4
-	k8s.io/apimachinery v0.19.4
+	k8s.io/apimachinery v0.20.0
 	k8s.io/client-go v0.19.4
 	k8s.io/utils v0.0.0-20201104234853-8146046b121e // indirect
 )
