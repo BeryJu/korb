@@ -38,7 +38,7 @@ var rootCmd = &cobra.Command{
 			m.SourcePVCName = pvc
 			m.Run()
 			if len(args) > 1 {
-				fmt.Print("=====================")
+				fmt.Println("=====================")
 			}
 		}
 	},
