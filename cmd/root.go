@@ -20,12 +20,14 @@ var pvcNewSize string
 var pvcNewName string
 
 var force bool
+var Version string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:  "korb [pvc [pvc]]",
-	Long: `Move data between Kubernetes PVCs on different Storage Classes.`,
-	Args: cobra.MinimumNArgs(1),
+	Use:     "korb [pvc [pvc]]",
+	Version: Version,
+	Long:    `Move data between Kubernetes PVCs on different Storage Classes.`,
+	Args:    cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, pvc := range args {
 			m := migrator.New(kubeConfig)

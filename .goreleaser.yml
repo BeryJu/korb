@@ -14,7 +14,7 @@ builds:
   flags:
     - -trimpath
   ldflags:
-    - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}'
+    - '-s -w -X github.com/BeryJu/korb/cmd.Version={{.Version}}'
   goos:
     - freebsd
     - windows
@@ -22,15 +22,18 @@ builds:
     - darwin
   goarch:
     - amd64
-    - '386'
     - arm
     - arm64
   ignore:
     - goos: darwin
       goarch: '386'
-  binary: '{{ .ProjectName }}_v{{ .Version }}'
+  binary: '{{ .ProjectName }}'
 archives:
-- format: zip
+- id: raw
+  format: binary
+  name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}'
+- id: tar
+  format: tar.gz
   name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
 checksum:
   name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
