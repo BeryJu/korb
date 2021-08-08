@@ -43,3 +43,13 @@ release:
   # draft: true
 changelog:
   skip: true
+brews:
+  - tap:
+      owner: beryju
+      name: homebrew-tap
+    commit_author:
+      name: goreleaserbot
+      email: goreleaser@beryju.org
+    homepage: 'https://github.com/beryju/korb'
+    description: 'Move Kubernetes PVCs between Storage Classes and Namespaces'
+    folder: Formula
