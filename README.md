@@ -2,6 +2,19 @@
 
 Move Data from PVCs between StorageClasses, or rename them.
 
+### Installation
+
+#### Using Homebrew
+
+```
+brew tap beryju/tap
+brew install korb
+```
+
+#### Manually
+
+Download the binary of the latest release from https://github.com/BeryJu/korb/releases
+
 ### Usage
 
 ```
@@ -17,6 +30,7 @@ Flags:
       --new-pvc-name string            Name for the new PVC. If empty, same name will be reused.
       --new-pvc-size string            Size for the new PVC. If empty, the size of the source will be used. Accepts formats like used in Kubernetes Manifests (Gi, Ti, ...)
       --new-pvc-storage-class string   Storage class to use for the new PVC. If empty, the storage class of the source will be used.
+  -v, --version                        version for korb
 
 requires at least 1 arg(s), only received 0
 ```
