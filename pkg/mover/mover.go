@@ -45,7 +45,7 @@ func (m *MoverJob) Start() *MoverJob {
 			VolumeSource: corev1.VolumeSource{
 				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
 					ClaimName: m.SourceVolume.Name,
-					ReadOnly:  true,
+					ReadOnly:  false,
 				},
 			},
 		},
