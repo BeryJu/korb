@@ -28,8 +28,10 @@ Flags:
   -h, --help                           help for korb
       --kubeConfig string              (optional) absolute path to the kubeConfig file (default "/home/jens/.kube/config")
       --new-pvc-name string            Name for the new PVC. If empty, same name will be reused.
+      --new-pvc-namespace string       Namespace for the new PVCs to be created in. If empty, the namespace from your kubeconfig file will be used.
       --new-pvc-size string            Size for the new PVC. If empty, the size of the source will be used. Accepts formats like used in Kubernetes Manifests (Gi, Ti, ...)
       --new-pvc-storage-class string   Storage class to use for the new PVC. If empty, the storage class of the source will be used.
+      --source-namespace string        Namespace where the old PVCs reside. If empty, the namespace from your kubeconfig file will be used.
   -v, --version                        version for korb
 
 requires at least 1 arg(s), only received 0

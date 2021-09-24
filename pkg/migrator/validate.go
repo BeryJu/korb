@@ -14,7 +14,7 @@ func (m *Migrator) Validate() (*v1.PersistentVolumeClaim, []strategies.Strategy)
 	if err != nil {
 		m.log.WithError(err).Panic("Failed to get controllers")
 	}
-	baseStrategy := strategies.NewBaseStrategy(m.kConfig, m.kClient, m.kNS)
+	baseStrategy := strategies.NewBaseStrategy(m.kConfig, m.kClient)
 	allStrategies := strategies.StrategyInstances(baseStrategy)
 	compatibleStrategies := make([]strategies.Strategy, 0)
 	for _, strategy := range allStrategies {
@@ -26,7 +26,7 @@ func (m *Migrator) Validate() (*v1.PersistentVolumeClaim, []strategies.Strategy)
 }
 
 func (m *Migrator) validateSourcePVC() *v1.PersistentVolumeClaim {
-	pvc, err := m.kClient.CoreV1().PersistentVolumeClaims(m.kNS).Get(context.TODO(), m.SourcePVCName, metav1.GetOptions{})
+	pvc, err := m.kClient.CoreV1().PersistentVolumeClaims(m.SourceNamespace).Get(context.TODO(), m.SourcePVCName, metav1.GetOptions{})
 	if err != nil {
 		m.log.WithError(err).Panic("Failed to get Source PVC")
 	}

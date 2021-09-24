@@ -8,7 +8,7 @@ import (
 )
 
 func (m *Migrator) getPVCPods(pvc *v1.PersistentVolumeClaim) ([]v1.Pod, error) {
-	nsPods, err := m.kClient.CoreV1().Pods(m.kNS).List(context.TODO(), metav1.ListOptions{})
+	nsPods, err := m.kClient.CoreV1().Pods(m.SourceNamespace).List(context.TODO(), metav1.ListOptions{})
 
 	if err != nil {
 		return []v1.Pod{}, err

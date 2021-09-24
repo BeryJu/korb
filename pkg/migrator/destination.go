@@ -24,7 +24,7 @@ func (m *Migrator) GetDestinationPVCTemplate(sourcePVC *v1.PersistentVolumeClaim
 	destPVC := &v1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      m.SourcePVCName,
-			Namespace: m.kNS,
+			Namespace: m.DestNamespace,
 		},
 		Spec: v1.PersistentVolumeClaimSpec{
 			AccessModes: sourcePVC.Spec.AccessModes,

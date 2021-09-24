@@ -14,10 +14,12 @@ import (
 )
 
 var kubeConfig string
+var sourceNamespace string
 
 var pvcNewStorageClass string
 var pvcNewSize string
 var pvcNewName string
+var pvcNewNamespace string
 
 var force bool
 var Version string
@@ -32,6 +34,13 @@ var rootCmd = &cobra.Command{
 		for _, pvc := range args {
 			m := migrator.New(kubeConfig)
 			m.Force = force
+
+			if sourceNamespace != "" {
+				m.SourceNamespace = sourceNamespace
+			}
+			if pvcNewNamespace != "" {
+				m.DestNamespace = pvcNewNamespace
+			}
 
 			m.DestPVCSize = pvcNewSize
 			m.DestPVCStorageClass = pvcNewStorageClass
@@ -63,10 +72,12 @@ func init() {
 	} else {
 		rootCmd.Flags().StringVar(&kubeConfig, "kubeConfig", "", "absolute path to the kubeconfig file")
 	}
+	rootCmd.Flags().StringVar(&sourceNamespace, "source-namespace", "", "Namespace where the old PVCs reside. If empty, the namespace from your kubeconfig file will be used.")
 
 	rootCmd.Flags().StringVar(&pvcNewStorageClass, "new-pvc-storage-class", "", "Storage class to use for the new PVC. If empty, the storage class of the source will be used.")
 	rootCmd.Flags().StringVar(&pvcNewName, "new-pvc-name", "", "Name for the new PVC. If empty, same name will be reused.")
 	rootCmd.Flags().StringVar(&pvcNewSize, "new-pvc-size", "", "Size for the new PVC. If empty, the size of the source will be used. Accepts formats like used in Kubernetes Manifests (Gi, Ti, ...)")
+	rootCmd.Flags().StringVar(&pvcNewNamespace, "new-pvc-namespace", "", "Namespace for the new PVCs to be created in. If empty, the namespace from your kubeconfig file will be used.")
 
 	rootCmd.Flags().BoolVar(&force, "force", false, "Ignore warning which would normally halt the tool during validation.")
 

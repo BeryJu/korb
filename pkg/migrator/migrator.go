@@ -9,8 +9,10 @@ import (
 )
 
 type Migrator struct {
-	SourcePVCName string
+	SourceNamespace string
+	SourcePVCName   string
 
+	DestNamespace       string
 	DestPVCStorageClass string
 	DestPVCSize         string
 	DestPVCName         string
@@ -19,7 +21,6 @@ type Migrator struct {
 
 	kConfig *rest.Config
 	kClient *kubernetes.Clientset
-	kNS     string
 
 	log *log.Entry
 }
@@ -46,7 +47,8 @@ func New(kubeconfigPath string) *Migrator {
 			m.log.WithError(err).Panic("Failed to get current namespace")
 		} else {
 			m.log.WithField("namespace", ns).Debug("Got current namespace")
-			m.kNS = ns
+			m.SourceNamespace = ns
+			m.DestNamespace = ns
 		}
 	} else {
 		m.log.Panic("Kubeconfig cannot be empty")

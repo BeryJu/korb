@@ -11,16 +11,14 @@ import (
 type BaseStrategy struct {
 	kConfig *rest.Config
 	kClient *kubernetes.Clientset
-	kNS     string
 
 	log *log.Entry
 }
 
-func NewBaseStrategy(config *rest.Config, client *kubernetes.Clientset, ns string) BaseStrategy {
+func NewBaseStrategy(config *rest.Config, client *kubernetes.Clientset) BaseStrategy {
 	return BaseStrategy{
 		kConfig: config,
 		kClient: client,
-		kNS:     ns,
 		log:     log.WithField("component", "strategy"),
 	}
 }

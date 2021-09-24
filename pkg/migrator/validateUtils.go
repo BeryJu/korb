@@ -18,12 +18,12 @@ func (m *Migrator) resolveOwner(meta metav1.ObjectMeta, expectedType interface{}
 		var meta metav1.ObjectMeta
 		if owner.Kind == "ReplicaSet" {
 			var rs *appsv1.ReplicaSet
-			rs, err = m.kClient.AppsV1().ReplicaSets(m.kNS).Get(context.TODO(), owner.Name, metav1.GetOptions{})
+			rs, err = m.kClient.AppsV1().ReplicaSets(m.SourceNamespace).Get(context.TODO(), owner.Name, metav1.GetOptions{})
 			ownerInstance = rs
 			meta = rs.ObjectMeta
 		} else if owner.Kind == "Deployment" {
 			var deployment *appsv1.Deployment
-			deployment, err = m.kClient.AppsV1().Deployments(m.kNS).Get(context.TODO(), owner.Name, metav1.GetOptions{})
+			deployment, err = m.kClient.AppsV1().Deployments(m.SourceNamespace).Get(context.TODO(), owner.Name, metav1.GetOptions{})
 			ownerInstance = deployment
 			meta = deployment.ObjectMeta
 		}
