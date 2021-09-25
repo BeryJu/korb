@@ -35,12 +35,17 @@ var rootCmd = &cobra.Command{
 			m := migrator.New(kubeConfig)
 			m.Force = force
 
+			// We can only support operating in a single namespace currently
+			// Since cross-namespace PVC mounts are not a thing
+			// we'd have to transfer the data over the network, which uh
+			// I don't really feel like implementing it
 			if sourceNamespace != "" {
 				m.SourceNamespace = sourceNamespace
+				m.DestNamespace = sourceNamespace
 			}
-			if pvcNewNamespace != "" {
-				m.DestNamespace = pvcNewNamespace
-			}
+			// if pvcNewNamespace != "" {
+			// 	m.DestNamespace = pvcNewNamespace
+			// }
 
 			m.DestPVCSize = pvcNewSize
 			m.DestPVCStorageClass = pvcNewStorageClass
