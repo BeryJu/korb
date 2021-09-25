@@ -1,4 +1,4 @@
-module github.com/BeryJu/korb
+module beryju.org/korb
 
 go 1.15
 

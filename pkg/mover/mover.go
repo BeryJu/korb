@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/BeryJu/korb/pkg/config"
+	"beryju.org/korb/pkg/config"
 	"github.com/goware/prefixer"
 	log "github.com/sirupsen/logrus"
 

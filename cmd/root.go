@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/BeryJu/korb/pkg/config"
-	"github.com/BeryJu/korb/pkg/migrator"
+	"beryju.org/korb/pkg/config"
+	"beryju.org/korb/pkg/migrator"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"

@@ -1,6 +1,6 @@
 package main
 
-import "github.com/BeryJu/korb/cmd"
+import "beryju.org/korb/cmd"
 
 func main() {
 	cmd.Execute()
