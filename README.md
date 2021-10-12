@@ -23,7 +23,7 @@ Usage:
   korb [pvc [pvc]] [flags]
 
 Flags:
-      --docker-image string            Image to use for moving jobs (default "ghcr.io/beryju/korb-mover:latest")
+      --docker-image string            Image to use for moving jobs (default "beryju.org/korb-mover:latest")
       --force                          Ignore warning which would normally halt the tool during validation.
   -h, --help                           help for korb
       --kubeConfig string              (optional) absolute path to the kubeConfig file (default "/home/jens/.kube/config")
