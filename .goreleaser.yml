@@ -27,6 +27,8 @@ builds:
   ignore:
     - goos: darwin
       goarch: '386'
+    - goos: windows
+      goarch: 'arm'
   binary: '{{ .ProjectName }}'
 archives:
 - id: raw
@@ -38,9 +40,6 @@ archives:
 checksum:
   name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
   algorithm: sha256
-release:
-  # If you want to manually examine the release before its live, uncomment this line:
-  # draft: true
 brews:
   - tap:
       owner: beryju
