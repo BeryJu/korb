@@ -19,6 +19,10 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+const (
+	ContainerName = "mover"
+)
+
 type MoverJob struct {
 	Name         string
 	Namespace    string
@@ -70,6 +74,7 @@ func (m *MoverJob) Start() *MoverJob {
 				ObjectMeta: metav1.ObjectMeta{
 					Annotations: map[string]string{
 						"sidecar.istio.io/inject": "false",
+						"linkerd.io/inject":       "disabled",
 					},
 				},
 				Spec: corev1.PodSpec{
@@ -77,7 +82,7 @@ func (m *MoverJob) Start() *MoverJob {
 					RestartPolicy: corev1.RestartPolicyOnFailure,
 					Containers: []corev1.Container{
 						{
-							Name:  "mover",
+							Name:  ContainerName,
 							Image: config.DockerImage,
 							VolumeMounts: []corev1.VolumeMount{
 								{
@@ -97,7 +102,6 @@ func (m *MoverJob) Start() *MoverJob {
 	}
 	j, err := m.kClient.BatchV1().Jobs(m.Namespace).Create(context.TODO(), job, metav1.CreateOptions{})
 	if err != nil {
-		// temp
 		panic(err)
 	}
 	m.kJob = j
@@ -105,7 +109,10 @@ func (m *MoverJob) Start() *MoverJob {
 }
 
 func (m *MoverJob) followLogs(pod v1.Pod) {
-	req := m.kClient.CoreV1().Pods(m.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{Follow: true})
+	req := m.kClient.CoreV1().Pods(m.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{
+		Follow:    true,
+		Container: ContainerName,
+	})
 	podLogs, err := req.Stream(context.Background())
 	if err != nil {
 		m.log.WithError(err).Warning("error opening log stream")
