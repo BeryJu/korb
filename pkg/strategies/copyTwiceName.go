@@ -43,6 +43,13 @@ func (c *CopyTwiceNameStrategy) Description() string {
 	return "Copy the PVC to the new Storage class and with new size and a new name, delete the old PVC, and copy it back to the old name."
 }
 
+func (c *CopyTwiceNameStrategy) getDeleteOptions() metav1.DeleteOptions {
+	policy := metav1.DeletePropagationForeground
+	return metav1.DeleteOptions{
+		PropagationPolicy: &policy,
+	}
+}
+
 func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemplate *v1.PersistentVolumeClaim) error {
 	c.setTimeout(destTemplate)
 	c.log.Warning("This strategy assumes you've stopped all pods accessing this data.")
@@ -76,7 +83,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	}
 
 	c.log.WithField("stage", 3).Debug("deleting original PVC")
-	err = c.kClient.CoreV1().PersistentVolumeClaims(sourcePVC.ObjectMeta.Namespace).Delete(context.TODO(), sourcePVC.Name, metav1.DeleteOptions{})
+	err = c.kClient.CoreV1().PersistentVolumeClaims(sourcePVC.ObjectMeta.Namespace).Delete(context.TODO(), sourcePVC.Name, c.getDeleteOptions())
 	if err != nil {
 		c.log.WithError(err).Warning("Failed to delete source pvc")
 		return c.Cleanup()
@@ -105,7 +112,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	}
 
 	c.log.WithField("stage", 6).Debug("deleting temporary PVC")
-	err = c.kClient.CoreV1().PersistentVolumeClaims(destTemplate.ObjectMeta.Namespace).Delete(context.TODO(), c.TempDestPVC.Name, metav1.DeleteOptions{})
+	err = c.kClient.CoreV1().PersistentVolumeClaims(destTemplate.ObjectMeta.Namespace).Delete(context.TODO(), c.TempDestPVC.Name, c.getDeleteOptions())
 	if err != nil {
 		c.log.WithError(err).Warning("Failed to delete temporary destination pvc")
 		return c.Cleanup()

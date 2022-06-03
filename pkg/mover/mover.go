@@ -166,15 +166,22 @@ func (m *MoverJob) getPods() []v1.Pod {
 	return pods.Items
 }
 
+func (m *MoverJob) getDeleteOptions() metav1.DeleteOptions {
+	policy := metav1.DeletePropagationForeground
+	return metav1.DeleteOptions{
+		PropagationPolicy: &policy,
+	}
+}
+
 func (m *MoverJob) Cleanup() error {
-	err := m.kClient.BatchV1().Jobs(m.Namespace).Delete(context.TODO(), m.Name, metav1.DeleteOptions{})
+	err := m.kClient.BatchV1().Jobs(m.Namespace).Delete(context.TODO(), m.Name, m.getDeleteOptions())
 	if err != nil {
 		m.log.WithError(err).Debug("Failed to delete job")
 		return err
 	}
 	pods := m.getPods()
 	for _, pod := range pods {
-		m.kClient.CoreV1().Pods(m.Namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
+		m.kClient.CoreV1().Pods(m.Namespace).Delete(context.TODO(), pod.Name, m.getDeleteOptions())
 	}
 	return nil
 }
