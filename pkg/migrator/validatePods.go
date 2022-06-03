@@ -7,7 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (m *Migrator) getPVCPods(pvc *v1.PersistentVolumeClaim) ([]v1.Pod, error) {
+func (m *Migrator) getPVCPods(pvcToCheck *v1.PersistentVolumeClaim) ([]v1.Pod, error) {
 	nsPods, err := m.kClient.CoreV1().Pods(m.SourceNamespace).List(context.TODO(), metav1.ListOptions{})
 
 	if err != nil {
@@ -20,7 +20,7 @@ func (m *Migrator) getPVCPods(pvc *v1.PersistentVolumeClaim) ([]v1.Pod, error) {
 		pvcs := getPVCs(pod.Spec.Volumes)
 
 		for _, pvc := range pvcs {
-			if pvc.PersistentVolumeClaim.ClaimName == pvc.Name {
+			if pvc.PersistentVolumeClaim.ClaimName == pvcToCheck.Name {
 				m.log.WithField("pod", pod.Name).Debug("Found pod which mounts source PVC")
 				pods = append(pods, pod)
 			}

@@ -5,8 +5,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func (m *Migrator) getPVCControllers(pvc *corev1.PersistentVolumeClaim) ([]interface{}, error) {
-	pods, err := m.getPVCPods(pvc)
+func (m *Migrator) getPVCControllers(pvcToCheck *corev1.PersistentVolumeClaim) ([]interface{}, error) {
+	pods, err := m.getPVCPods(pvcToCheck)
 	if err != nil {
 		return nil, err
 	}
