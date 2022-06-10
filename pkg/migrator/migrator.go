@@ -19,6 +19,8 @@ type Migrator struct {
 
 	Force bool
 
+	WaitForTempDestPVCBind bool
+
 	kConfig *rest.Config
 	kClient *kubernetes.Clientset
 
@@ -73,7 +75,7 @@ func (m *Migrator) Run() {
 	destTemplate.Name = m.DestPVCName
 	if len(compatibleStrategies) == 1 {
 		m.log.Debug("Only one compatible strategy, running")
-		err := compatibleStrategies[0].Do(sourcePVC, destTemplate)
+		err := compatibleStrategies[0].Do(sourcePVC, destTemplate, m.WaitForTempDestPVCBind)
 		if err != nil {
 			m.log.WithError(err).Warning("Failed to migrate")
 		}
