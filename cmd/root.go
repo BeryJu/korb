@@ -22,6 +22,7 @@ var pvcNewName string
 var pvcNewNamespace string
 
 var force bool
+var skipWaitPVCBind bool
 var Version string
 
 // rootCmd represents the base command when called without any subcommands
@@ -34,6 +35,7 @@ var rootCmd = &cobra.Command{
 		for _, pvc := range args {
 			m := migrator.New(kubeConfig)
 			m.Force = force
+			m.WaitForTempDestPVCBind = skipWaitPVCBind
 
 			// We can only support operating in a single namespace currently
 			// Since cross-namespace PVC mounts are not a thing
@@ -85,6 +87,7 @@ func init() {
 	rootCmd.Flags().StringVar(&pvcNewNamespace, "new-pvc-namespace", "", "Namespace for the new PVCs to be created in. If empty, the namespace from your kubeconfig file will be used.")
 
 	rootCmd.Flags().BoolVar(&force, "force", false, "Ignore warning which would normally halt the tool during validation.")
+	rootCmd.Flags().BoolVar(&skipWaitPVCBind, "skip-pvc-bind-wait", false, "Skip waiting for PVC to be bound.")
 
 	rootCmd.Flags().StringVar(&config.DockerImage, "docker-image", config.DockerImage, "Image to use for moving jobs")
 }

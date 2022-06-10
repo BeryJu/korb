@@ -23,6 +23,8 @@ type CopyTwiceNameStrategy struct {
 
 	MoveTimeout time.Duration
 
+	WaitForTempDestPVCBind bool
+
 	pvcsToDelete []*v1.PersistentVolumeClaim
 }
 
@@ -50,7 +52,7 @@ func (c *CopyTwiceNameStrategy) getDeleteOptions() metav1.DeleteOptions {
 	}
 }
 
-func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemplate *v1.PersistentVolumeClaim) error {
+func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemplate *v1.PersistentVolumeClaim, WaitForTempDestPVCBind bool) error {
 	c.setTimeout(destTemplate)
 	c.log.Warning("This strategy assumes you've stopped all pods accessing this data.")
 	suffix := time.Now().Unix()
@@ -63,10 +65,15 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	if err != nil {
 		return err
 	}
-	err = c.waitForBound(tempDest)
-	if err != nil {
-		c.log.WithError(err).Warning("Waiting for PVC to be bound failed")
-		return c.Cleanup()
+
+	if c.WaitForTempDestPVCBind {
+		err = c.waitForBound(tempDest)
+		if err != nil {
+			c.log.WithError(err).Warning("Waiting for PVC to be bound failed")
+			return c.Cleanup()
+		}
+	} else{
+		c.log.WithField("stage", 2).Debug("skipping waiting for PVC to be bound")
 	}
 
 	c.log.WithField("stage", 2).Debug("starting mover job")

@@ -26,7 +26,7 @@ func NewBaseStrategy(config *rest.Config, client *kubernetes.Clientset) BaseStra
 type Strategy interface {
 	CompatibleWithControllers(...interface{}) bool
 	Description() string
-	Do(sourcePVC *v1.PersistentVolumeClaim, destTemplate *v1.PersistentVolumeClaim) error
+	Do(sourcePVC *v1.PersistentVolumeClaim, destTemplate *v1.PersistentVolumeClaim, WaitForTempDestPVCBind bool) error
 }
 
 func StrategyInstances(b BaseStrategy) []Strategy {

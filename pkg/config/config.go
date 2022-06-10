@@ -1,3 +1,3 @@
 package config
 
-var DockerImage = "beryju.org/korb-mover:latest"
+var DockerImage = "ghcr.io/beryju/korb-mover:latest"
