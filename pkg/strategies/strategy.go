@@ -24,7 +24,7 @@ func NewBaseStrategy(config *rest.Config, client *kubernetes.Clientset) BaseStra
 }
 
 type Strategy interface {
-	CompatibleWithContext(MigrationContext) bool
+	CompatibleWithContext(MigrationContext) error
 	Description() string
 	Identifier() string
 	Do(sourcePVC *v1.PersistentVolumeClaim, destTemplate *v1.PersistentVolumeClaim, WaitForTempDestPVCBind bool) error

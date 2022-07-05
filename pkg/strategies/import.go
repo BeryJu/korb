@@ -32,9 +32,13 @@ func (c *ImportStrategy) Identifier() string {
 	return "import"
 }
 
-func (c *ImportStrategy) CompatibleWithContext(ctx MigrationContext) bool {
-	_, err := os.Stat(fmt.Sprintf("%s.tar", ctx.SourcePVC.Name))
-	return !errors.Is(err, os.ErrNotExist)
+func (c *ImportStrategy) CompatibleWithContext(ctx MigrationContext) error {
+	path := fmt.Sprintf("%s.tar", ctx.SourcePVC.Name)
+	_, err := os.Stat(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("Expected import file '%s' does not exist", path)
+	}
+	return nil
 }
 
 func (c *ImportStrategy) Description() string {

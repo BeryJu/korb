@@ -41,8 +41,8 @@ func (c *CopyTwiceNameStrategy) Identifier() string {
 	return "copy-twice-name"
 }
 
-func (c *CopyTwiceNameStrategy) CompatibleWithContext(ctx MigrationContext) bool {
-	return true
+func (c *CopyTwiceNameStrategy) CompatibleWithContext(ctx MigrationContext) error {
+	return nil
 }
 
 func (c *CopyTwiceNameStrategy) Description() string {

@@ -92,7 +92,7 @@ func (m *Migrator) Run() {
 		}
 	}
 	if selected == nil {
-		m.log.Error("No strategy selected.")
+		m.log.Error("No (compatible) strategy selected.")
 		return
 	}
 	err := selected.Do(sourcePVC, destTemplate, m.WaitForTempDestPVCBind)

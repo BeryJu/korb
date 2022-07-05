@@ -32,8 +32,8 @@ func (c *ExportStrategy) Identifier() string {
 	return "export"
 }
 
-func (c *ExportStrategy) CompatibleWithContext(ctx MigrationContext) bool {
-	return true
+func (c *ExportStrategy) CompatibleWithContext(ctx MigrationContext) error {
+	return nil
 }
 
 func (c *ExportStrategy) Description() string {

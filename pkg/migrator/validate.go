@@ -22,8 +22,11 @@ func (m *Migrator) Validate() (*v1.PersistentVolumeClaim, []strategies.Strategy)
 		SourcePVC:      *pvc,
 	}
 	for _, strategy := range allStrategies {
-		if strategy.CompatibleWithContext(ctx) {
+		err := strategy.CompatibleWithContext(ctx)
+		if err == nil {
 			compatibleStrategies = append(compatibleStrategies, strategy)
+		} else {
+			m.log.WithError(err).Info("Strategy not compatible")
 		}
 	}
 	return pvc, compatibleStrategies
