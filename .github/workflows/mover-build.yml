@@ -25,6 +25,6 @@ jobs:
         uses: docker/build-push-action@v3.0.0
         with:
           context: mover
-          tags: ghcr.io/beryju/korb-mover:latest
+          tags: ghcr.io/beryju/korb-mover:v2
           push: ${{ github.ref == 'refs/heads/main' }}
           platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
