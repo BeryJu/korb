@@ -1,6 +1,7 @@
 package migrator
 
 import (
+	"beryju.org/korb/pkg/strategies"
 	log "github.com/sirupsen/logrus"
 
 	"k8s.io/client-go/kubernetes"
@@ -24,12 +25,14 @@ type Migrator struct {
 	kConfig *rest.Config
 	kClient *kubernetes.Clientset
 
-	log *log.Entry
+	log      *log.Entry
+	strategy string
 }
 
-func New(kubeconfigPath string) *Migrator {
+func New(kubeconfigPath string, strategy string) *Migrator {
 	m := &Migrator{
-		log: log.WithField("component", "migrator"),
+		log:      log.WithField("component", "migrator"),
+		strategy: strategy,
 	}
 	if kubeconfigPath != "" {
 		m.log.WithField("kubeconfig", kubeconfigPath).Debug("Created client from kubeconfig")
@@ -69,15 +72,31 @@ func (m *Migrator) Run() {
 	sourcePVC, compatibleStrategies := m.Validate()
 	m.log.Debug("Compatible Strategies:")
 	for _, compatibleStrategy := range compatibleStrategies {
-		m.log.Debug(compatibleStrategy.Description())
+		m.log.WithField("identifier", compatibleStrategy.Identifier()).Debug(compatibleStrategy.Description())
 	}
 	destTemplate := m.GetDestinationPVCTemplate(sourcePVC)
 	destTemplate.Name = m.DestPVCName
+
+	var selected strategies.Strategy
+
 	if len(compatibleStrategies) == 1 {
 		m.log.Debug("Only one compatible strategy, running")
-		err := compatibleStrategies[0].Do(sourcePVC, destTemplate, m.WaitForTempDestPVCBind)
-		if err != nil {
-			m.log.WithError(err).Warning("Failed to migrate")
+		selected = compatibleStrategies[0]
+	} else {
+		for _, strat := range compatibleStrategies {
+			if strat.Identifier() == m.strategy {
+				m.log.WithField("identifier", strat.Identifier()).Debug("User selected strategy")
+				selected = strat
+				break
+			}
 		}
+	}
+	if selected == nil {
+		m.log.Error("No (compatible) strategy selected.")
+		return
+	}
+	err := selected.Do(sourcePVC, destTemplate, m.WaitForTempDestPVCBind)
+	if err != nil {
+		m.log.WithError(err).Warning("Failed to migrate")
 	}
 }

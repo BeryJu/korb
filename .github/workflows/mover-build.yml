@@ -2,9 +2,9 @@ name: ci-build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
 
@@ -27,5 +27,5 @@ jobs:
       with:
         context: mover
         tags: ghcr.io/beryju/korb-mover:latest
-        push: ${{ github.ref == 'refs/heads/master' }}
+        push: ${{ github.ref == 'refs/heads/main' }}
         platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64

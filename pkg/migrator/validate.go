@@ -17,9 +17,16 @@ func (m *Migrator) Validate() (*v1.PersistentVolumeClaim, []strategies.Strategy)
 	baseStrategy := strategies.NewBaseStrategy(m.kConfig, m.kClient)
 	allStrategies := strategies.StrategyInstances(baseStrategy)
 	compatibleStrategies := make([]strategies.Strategy, 0)
+	ctx := strategies.MigrationContext{
+		PVCControllers: controllers,
+		SourcePVC:      *pvc,
+	}
 	for _, strategy := range allStrategies {
-		if strategy.CompatibleWithControllers(controllers...) {
+		err := strategy.CompatibleWithContext(ctx)
+		if err == nil {
 			compatibleStrategies = append(compatibleStrategies, strategy)
+		} else {
+			m.log.WithError(err).Info("Strategy not compatible")
 		}
 	}
 	return pvc, compatibleStrategies
