@@ -26,12 +26,14 @@ func NewBaseStrategy(config *rest.Config, client *kubernetes.Clientset) BaseStra
 type Strategy interface {
 	CompatibleWithControllers(...interface{}) bool
 	Description() string
+	Identifier() string
 	Do(sourcePVC *v1.PersistentVolumeClaim, destTemplate *v1.PersistentVolumeClaim, WaitForTempDestPVCBind bool) error
 }
 
 func StrategyInstances(b BaseStrategy) []Strategy {
 	s := []Strategy{
 		NewCopyTwiceNameStrategy(b),
+		NewExportStrategy(b),
 	}
 	return s
 }

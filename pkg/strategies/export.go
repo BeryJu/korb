@@ -1,0 +1,94 @@
+package strategies
+
+import (
+	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+
+	"beryju.org/korb/pkg/mover"
+	"github.com/schollz/progressbar/v3"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/rest"
+)
+
+type ExportStrategy struct {
+	BaseStrategy
+
+	TempDestPVC *v1.PersistentVolumeClaim
+
+	tempMover *mover.MoverJob
+}
+
+func NewExportStrategy(b BaseStrategy) *ExportStrategy {
+	s := &ExportStrategy{
+		BaseStrategy: b,
+	}
+	s.log = s.log.WithField("strategy", s.Identifier())
+	return s
+}
+
+func (c *ExportStrategy) Identifier() string {
+	return "export"
+}
+
+func (c *ExportStrategy) CompatibleWithControllers(...interface{}) bool {
+	return true
+}
+
+func (c *ExportStrategy) Description() string {
+	return "Export PVC content into a tar archive."
+}
+
+func (c *ExportStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemplate *v1.PersistentVolumeClaim, WaitForTempDestPVCBind bool) error {
+	c.log.Warning("This strategy assumes you've stopped all pods accessing this data.")
+
+	c.log.Debug("starting mover job")
+	c.tempMover = mover.NewMoverJob(c.kClient, mover.MoverTypeSleep)
+	c.tempMover.Namespace = destTemplate.ObjectMeta.Namespace
+	c.tempMover.SourceVolume = sourcePVC
+	c.tempMover.Name = fmt.Sprintf("korb-job-%s", sourcePVC.UID)
+
+	pod := c.tempMover.Start().WaitForRunning()
+	if pod == nil {
+		c.log.Warning("Failed to move data")
+		return c.Cleanup()
+	}
+	c.log.Debug("mover pod running, starting copy")
+
+	output, err := c.Copy(*pod, c.kConfig)
+	if err != nil {
+		c.log.WithError(err).Warning("failed to copy file")
+		return c.Cleanup()
+	}
+	c.log.Info("Finished copying")
+	c.log.Infof("Export at '%s'", output)
+	return c.Cleanup()
+}
+
+func (c *ExportStrategy) Copy(pod v1.Pod, config *rest.Config) (string, error) {
+	file, err := ioutil.TempFile(os.TempDir(), "korb-mover-")
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+	bar := progressbar.DefaultBytes(
+		-1,
+		"downloading",
+	)
+	err = c.tempMover.Exec(pod, config, []string{
+		"tar", "cvf", "-", mover.SourceMount,
+	}, io.MultiWriter(file, bar))
+	if err != nil {
+		return "", err
+	}
+	return file.Name(), nil
+}
+
+func (c *ExportStrategy) Cleanup() error {
+	c.log.Info("Cleaning up...")
+	if c.tempMover != nil {
+		c.tempMover.Cleanup()
+	}
+	return nil
+}

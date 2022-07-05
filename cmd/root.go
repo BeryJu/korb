@@ -15,6 +15,7 @@ import (
 
 var kubeConfig string
 var sourceNamespace string
+var strategy string
 
 var pvcNewStorageClass string
 var pvcNewSize string
@@ -33,7 +34,7 @@ var rootCmd = &cobra.Command{
 	Args:    cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, pvc := range args {
-			m := migrator.New(kubeConfig)
+			m := migrator.New(kubeConfig, strategy)
 			m.Force = force
 			m.WaitForTempDestPVCBind = skipWaitPVCBind
 
@@ -89,5 +90,6 @@ func init() {
 	rootCmd.Flags().BoolVar(&force, "force", false, "Ignore warning which would normally halt the tool during validation.")
 	rootCmd.Flags().BoolVar(&skipWaitPVCBind, "skip-pvc-bind-wait", false, "Skip waiting for PVC to be bound.")
 
-	rootCmd.Flags().StringVar(&config.DockerImage, "docker-image", config.DockerImage, "Image to use for moving jobs")
+	rootCmd.Flags().StringVar(&config.ContainerImage, "docker-image", config.ContainerImage, "Image to use for moving jobs")
+	rootCmd.Flags().StringVar(&strategy, "strategy", "", "Strategy to use, by default will try to auto-select")
 }

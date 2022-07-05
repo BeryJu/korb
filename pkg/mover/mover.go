@@ -2,10 +2,8 @@ package mover
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"os"
-	"time"
 
 	"beryju.org/korb/pkg/config"
 	"github.com/goware/prefixer"
@@ -15,13 +13,22 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 )
 
 const (
 	ContainerName = "mover"
 )
+
+type MoverType string
+
+const (
+	MoverTypeSync  MoverType = "sync"
+	MoverTypeSleep MoverType = "sleep"
+)
+
+const SourceMount = "/source"
+const DestMount = "/dest"
 
 type MoverJob struct {
 	Name         string
@@ -32,13 +39,15 @@ type MoverJob struct {
 	kJob    *batchv1.Job
 	kClient *kubernetes.Clientset
 
-	log *log.Entry
+	mode MoverType
+	log  *log.Entry
 }
 
-func NewMoverJob(client *kubernetes.Clientset) *MoverJob {
+func NewMoverJob(client *kubernetes.Clientset, mode MoverType) *MoverJob {
 	return &MoverJob{
 		kClient: client,
 		log:     log.WithField("component", "mover-job"),
+		mode:    mode,
 	}
 }
 
@@ -53,7 +62,15 @@ func (m *MoverJob) Start() *MoverJob {
 				},
 			},
 		},
+	}
+	mounts := []corev1.VolumeMount{
 		{
+			Name:      "source",
+			MountPath: SourceMount,
+		},
+	}
+	if m.mode == MoverTypeSync {
+		volumes = append(volumes, corev1.Volume{
 			Name: "dest",
 			VolumeSource: corev1.VolumeSource{
 				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
@@ -61,7 +78,11 @@ func (m *MoverJob) Start() *MoverJob {
 					ReadOnly:  false,
 				},
 			},
-		},
+		})
+		mounts = append(mounts, corev1.VolumeMount{
+			Name:      "dest",
+			MountPath: DestMount,
+		})
 	}
 
 	job := &batchv1.Job{
@@ -82,18 +103,11 @@ func (m *MoverJob) Start() *MoverJob {
 					RestartPolicy: corev1.RestartPolicyOnFailure,
 					Containers: []corev1.Container{
 						{
-							Name:  ContainerName,
-							Image: config.DockerImage,
-							VolumeMounts: []corev1.VolumeMount{
-								{
-									Name:      "source",
-									MountPath: "/source",
-								},
-								{
-									Name:      "dest",
-									MountPath: "/dest",
-								},
-							},
+							Name:            ContainerName,
+							Image:           config.ContainerImage,
+							ImagePullPolicy: v1.PullAlways,
+							Args:            []string{string(m.mode)},
+							VolumeMounts:    mounts,
 						},
 					},
 				},
@@ -124,53 +138,6 @@ func (m *MoverJob) followLogs(pod v1.Pod) {
 	for {
 		io.Copy(os.Stdout, prefixReader)
 	}
-}
-
-func (m *MoverJob) Wait(timeout time.Duration) error {
-	// First we wait for all pods to be running
-	var runningPod v1.Pod
-	err := wait.Poll(2*time.Second, 60*time.Second, func() (bool, error) {
-		pods := m.getPods()
-		if len(pods) != 1 {
-			return false, nil
-		}
-		pod := pods[0]
-		if pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded {
-			runningPod = pod
-			return true, nil
-		}
-		m.log.WithField("phase", pod.Status.Phase).Debug("Pod not in correct state yet")
-		return false, nil
-	})
-	go m.followLogs(runningPod)
-
-	err = wait.Poll(2*time.Second, timeout, func() (bool, error) {
-		job, err := m.kClient.BatchV1().Jobs(m.Namespace).Get(context.TODO(), m.kJob.Name, metav1.GetOptions{})
-		if err != nil {
-			return false, err
-		}
-		if job.Status.Succeeded != int32(len(job.Spec.Template.Spec.Containers)) {
-			return false, nil
-		}
-		return true, nil
-	})
-
-	if err == nil {
-		// Job was run successfully, so we delete it to cleanup
-		m.log.Debug("Cleaning up successful job")
-		return m.Cleanup()
-	}
-	return err
-}
-
-func (m *MoverJob) getPods() []v1.Pod {
-	selector := fmt.Sprintf("job-name=%s", m.Name)
-	pods, err := m.kClient.CoreV1().Pods(m.Namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: selector})
-	if err != nil {
-		m.log.WithError(err).Warning("Failed to get pods")
-		return make([]v1.Pod, 0)
-	}
-	return pods.Items
 }
 
 func (m *MoverJob) getDeleteOptions() metav1.DeleteOptions {

@@ -6,4 +6,4 @@ VOLUME [ "/source", "/dest" ]
 
 COPY ./entrypoint.sh /bin/entrypoint
 
-CMD [ "/bin/entrypoint" ]
+ENTRYPOINT [ "/bin/entrypoint" ]

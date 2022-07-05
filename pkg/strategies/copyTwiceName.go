@@ -33,8 +33,12 @@ func NewCopyTwiceNameStrategy(b BaseStrategy) *CopyTwiceNameStrategy {
 		BaseStrategy: b,
 		pvcsToDelete: make([]*v1.PersistentVolumeClaim, 0),
 	}
-	s.log = s.log.WithField("strategy", "copy-twice-name")
+	s.log = s.log.WithField("strategy", s.Identifier())
 	return s
+}
+
+func (c *CopyTwiceNameStrategy) Identifier() string {
+	return "copy-twice-name"
 }
 
 func (c *CopyTwiceNameStrategy) CompatibleWithControllers(...interface{}) bool {
@@ -72,12 +76,12 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 			c.log.WithError(err).Warning("Waiting for PVC to be bound failed")
 			return c.Cleanup()
 		}
-	} else{
+	} else {
 		c.log.WithField("stage", 2).Debug("skipping waiting for PVC to be bound")
 	}
 
 	c.log.WithField("stage", 2).Debug("starting mover job")
-	c.tempMover = mover.NewMoverJob(c.kClient)
+	c.tempMover = mover.NewMoverJob(c.kClient, mover.MoverTypeSync)
 	c.tempMover.Namespace = destTemplate.ObjectMeta.Namespace
 	c.tempMover.SourceVolume = sourcePVC
 	c.tempMover.DestVolume = c.TempDestPVC
@@ -106,7 +110,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	c.DestPVC = destInst
 
 	c.log.WithField("stage", 5).Debug("starting mover job to final PVC")
-	c.finalMover = mover.NewMoverJob(c.kClient)
+	c.finalMover = mover.NewMoverJob(c.kClient, mover.MoverTypeSync)
 	c.finalMover.Namespace = destTemplate.ObjectMeta.Namespace
 	c.finalMover.SourceVolume = c.TempDestPVC
 	c.finalMover.DestVolume = c.DestPVC
