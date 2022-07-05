@@ -76,9 +76,9 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 
 	if home := homedir.HomeDir(); home != "" {
-		rootCmd.Flags().StringVar(&kubeConfig, "kubeConfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeConfig file")
+		rootCmd.Flags().StringVar(&kubeConfig, "kube-config", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
 	} else {
-		rootCmd.Flags().StringVar(&kubeConfig, "kubeConfig", "", "absolute path to the kubeconfig file")
+		rootCmd.Flags().StringVar(&kubeConfig, "kube-config", "", "absolute path to the kubeconfig file")
 	}
 	rootCmd.Flags().StringVar(&sourceNamespace, "source-namespace", "", "Namespace where the old PVCs reside. If empty, the namespace from your kubeconfig file will be used.")
 
@@ -90,6 +90,6 @@ func init() {
 	rootCmd.Flags().BoolVar(&force, "force", false, "Ignore warning which would normally halt the tool during validation.")
 	rootCmd.Flags().BoolVar(&skipWaitPVCBind, "skip-pvc-bind-wait", false, "Skip waiting for PVC to be bound.")
 
-	rootCmd.Flags().StringVar(&config.ContainerImage, "docker-image", config.ContainerImage, "Image to use for moving jobs")
+	rootCmd.Flags().StringVar(&config.ContainerImage, "container-image", config.ContainerImage, "Image to use for moving jobs")
 	rootCmd.Flags().StringVar(&strategy, "strategy", "", "Strategy to use, by default will try to auto-select")
 }

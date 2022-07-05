@@ -23,10 +23,10 @@ Usage:
   korb [pvc [pvc]] [flags]
 
 Flags:
-      --docker-image string            Image to use for moving jobs (default "ghcr.io/beryju/korb-mover:latest")
+      --container-image string         Image to use for moving jobs (default "ghcr.io/beryju/korb-mover:latest")
       --force                          Ignore warning which would normally halt the tool during validation.
   -h, --help                           help for korb
-      --kubeConfig string              (optional) absolute path to the kubeConfig file (default "/Users/jens/.kube/config")
+      --kube-config string             (optional) absolute path to the kubeconfig file (default "/Users/jens/.kube/config")
       --new-pvc-name string            Name for the new PVC. If empty, same name will be reused.
       --new-pvc-namespace string       Namespace for the new PVCs to be created in. If empty, the namespace from your kubeconfig file will be used.
       --new-pvc-size string            Size for the new PVC. If empty, the size of the source will be used. Accepts formats like used in Kubernetes Manifests (Gi, Ti, ...)
