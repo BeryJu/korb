@@ -12,12 +12,13 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 )
 
-func (m *MoverJob) Exec(pod v1.Pod, config *rest.Config, cmd []string, output io.Writer) error {
+func (m *MoverJob) Exec(pod v1.Pod, config *rest.Config, cmd []string, input io.Reader, output io.Writer) error {
 	req := m.kClient.CoreV1().RESTClient().Post().Resource("pods").Name(pod.Name).Namespace(m.Namespace).SubResource("exec")
 	req.VersionedParams(
 		&v1.PodExecOptions{
 			Container: ContainerName,
 			Command:   cmd,
+			Stdin:     input != nil,
 			Stdout:    true,
 			Stderr:    true,
 		},
@@ -39,6 +40,7 @@ func (m *MoverJob) Exec(pod v1.Pod, config *rest.Config, cmd []string, output io
 		}
 	}()
 	err = exec.Stream(remotecommand.StreamOptions{
+		Stdin:  input,
 		Stdout: output,
 		Stderr: os.Stdout,
 	})

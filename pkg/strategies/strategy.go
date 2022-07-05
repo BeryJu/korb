@@ -24,16 +24,22 @@ func NewBaseStrategy(config *rest.Config, client *kubernetes.Clientset) BaseStra
 }
 
 type Strategy interface {
-	CompatibleWithControllers(...interface{}) bool
+	CompatibleWithContext(MigrationContext) bool
 	Description() string
 	Identifier() string
 	Do(sourcePVC *v1.PersistentVolumeClaim, destTemplate *v1.PersistentVolumeClaim, WaitForTempDestPVCBind bool) error
+}
+
+type MigrationContext struct {
+	PVCControllers []interface{}
+	SourcePVC      v1.PersistentVolumeClaim
 }
 
 func StrategyInstances(b BaseStrategy) []Strategy {
 	s := []Strategy{
 		NewCopyTwiceNameStrategy(b),
 		NewExportStrategy(b),
+		NewImportStrategy(b),
 	}
 	return s
 }
