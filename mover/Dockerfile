@@ -1,7 +1,9 @@
-FROM alpine:latest
+FROM alpine:3
 
-RUN apk add --no-cache rsync && rm -rf /var/cache/apk/*
+RUN apk add --no-cache rsync bash tar && rm -rf /var/cache/apk/*
 
 VOLUME [ "/source", "/dest" ]
 
-CMD [ "rsync", "-aHA", "--progress", "/source/", "/dest" ]
+COPY ./entrypoint.sh /bin/entrypoint
+
+CMD [ "/bin/entrypoint" ]
