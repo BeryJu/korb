@@ -23,21 +23,22 @@ Usage:
   korb [pvc [pvc]] [flags]
 
 Flags:
-      --docker-image string            Image to use for moving jobs (default "beryju.org/korb-mover:latest")
+      --docker-image string            Image to use for moving jobs (default "ghcr.io/beryju/korb-mover:latest")
       --force                          Ignore warning which would normally halt the tool during validation.
   -h, --help                           help for korb
-      --kubeConfig string              (optional) absolute path to the kubeConfig file (default "/home/jens/.kube/config")
+      --kubeConfig string              (optional) absolute path to the kubeConfig file (default "/Users/jens/.kube/config")
       --new-pvc-name string            Name for the new PVC. If empty, same name will be reused.
       --new-pvc-namespace string       Namespace for the new PVCs to be created in. If empty, the namespace from your kubeconfig file will be used.
       --new-pvc-size string            Size for the new PVC. If empty, the size of the source will be used. Accepts formats like used in Kubernetes Manifests (Gi, Ti, ...)
       --new-pvc-storage-class string   Storage class to use for the new PVC. If empty, the storage class of the source will be used.
+      --skip-pvc-bind-wait             Skip waiting for PVC to be bound.
       --source-namespace string        Namespace where the old PVCs reside. If empty, the namespace from your kubeconfig file will be used.
-  -v, --version                        version for korb
+      --strategy string                Strategy to use, by default will try to auto-select
 
 requires at least 1 arg(s), only received 0
 ```
 
-### Example
+### Example (Moving from PVC to PVC)
 
 ```
 ~ ./korb --new-pvc-storage-class ontap-ssd redis-data-redis-master-0
@@ -78,4 +79,50 @@ DEBU[0048] Cleaning up successful job                    component=mover-job
 DEBU[0048] deleting temporary PVC                        component=strategy stage=6 strategy=copy-twice-name
 INFO[0050] And we're done                                component=strategy strategy=copy-twice-name
 INFO[0050] Cleaning up...                                component=strategy strategy=copy-twice-name
+```
+
+### Example (Exporting from PVC to tar)
+
+```
+~ ./korb overseerr-config --strategy export
+DEBU[0000] Created client from kubeconfig                component=migrator kubeconfig=/Users/jens/.kube/config
+DEBU[0000] Got current namespace                         component=migrator namespace=overseerr
+DEBU[0000] Got Source PVC                                component=migrator name=overseerr-config uid=8e94240d-3c36-4fb1-baf0-5da1f6c44210
+DEBU[0000] No new Name given, using old name             component=migrator
+INFO[0000] Strategy not compatible                       component=migrator error="Expected import file 'overseerr-config.tar' does not exist"
+DEBU[0000] Compatible Strategies:                        component=migrator
+DEBU[0000] Copy the PVC to the new Storage class and with new size and a new name, delete the old PVC, and copy it back to the old name.  component=migrator identifier=copy-twice-name
+DEBU[0000] Export PVC content into a tar archive.        component=migrator identifier=export
+DEBU[0000] User selected strategy                        component=migrator identifier=export
+WARN[0000] This strategy assumes you've stopped all pods accessing this data.  component=strategy strategy=export
+DEBU[0000] starting mover job                            component=strategy strategy=export
+DEBU[0000] Pod not in correct state yet                  component=mover-job phase=Pending
+[...]
+DEBU[0036] mover pod running, starting copy              component=strategy strategy=export
+tar: Removing leading `/' from member names
+/source/
+/source/db/
+/source/db/db.sqlite3
+⠧ downloading (110 kB, 43.824 kB/s) /source/db/db.sqlite3-shm
+/source/db/db.sqlite3-wal
+⠴ downloading (4.0 MB, 1.521 MB/s) /source/logs/
+/source/logs/overseerr.log
+/source/logs/.20136e5b8544ec13f7fc29ce3d35150d597108bb-audit.json
+/source/logs/.d2109f103a9d757bc28894d508ee5579a3284e75-audit.json
+/source/logs/.machinelogs.json
+/source/logs/overseerr-2022-07-01.log.gz
+/source/logs/overseerr-2022-07-05.log
+⠦ downloading (4.2 MB, 1.521 MB/s) /source/logs/.machinelogs-2022-07-04.json.gz
+/source/logs/overseerr-2022-05-24.log.gz
+/source/logs/overseerr-2022-07-03.log.gz
+/source/logs/overseerr-2022-06-29.log.gz
+/source/logs/overseerr-2022-07-02.log.gz
+/source/logs/overseerr-2022-05-25.log.gz
+/source/logs/overseerr-2022-06-30.log.gz
+/source/logs/overseerr-2022-07-04.log.gz
+/source/logs/.machinelogs-2022-07-05.json
+⠦ downloading (4.4 MB, 1.521 MB/s) /source/settings.json
+INFO[0039] Finished copying                              component=strategy strategy=export
+INFO[0039] Export at 'overseerr-config.tar'              component=strategy strategy=export
+INFO[0039] Cleaning up...                                component=strategy strategy=export
 ```
