@@ -21,6 +21,7 @@ var pvcNewStorageClass string
 var pvcNewSize string
 var pvcNewName string
 var pvcNewNamespace string
+var pvcNewAccessModes []string
 
 var force bool
 var skipWaitPVCBind bool
@@ -53,6 +54,7 @@ var rootCmd = &cobra.Command{
 			m.DestPVCSize = pvcNewSize
 			m.DestPVCStorageClass = pvcNewStorageClass
 			m.DestPVCName = pvcNewName
+			m.DestPVCAccessModes = pvcNewAccessModes
 
 			m.SourcePVCName = pvc
 			m.Run()
@@ -86,6 +88,7 @@ func init() {
 	rootCmd.Flags().StringVar(&pvcNewName, "new-pvc-name", "", "Name for the new PVC. If empty, same name will be reused.")
 	rootCmd.Flags().StringVar(&pvcNewSize, "new-pvc-size", "", "Size for the new PVC. If empty, the size of the source will be used. Accepts formats like used in Kubernetes Manifests (Gi, Ti, ...)")
 	rootCmd.Flags().StringVar(&pvcNewNamespace, "new-pvc-namespace", "", "Namespace for the new PVCs to be created in. If empty, the namespace from your kubeconfig file will be used.")
+	rootCmd.Flags().StringSliceVar(&pvcNewAccessModes, "new-pvc-access-mode", []string{}, "Access mode(s) for the new PVC. If empty, the access mode of the source will be used. Accepts formats like used in Kubernetes Manifests (ReadWriteOnce, ReadWriteMany, ...)")
 
 	rootCmd.Flags().BoolVar(&force, "force", false, "Ignore warning which would normally halt the tool during validation.")
 	rootCmd.Flags().BoolVar(&skipWaitPVCBind, "skip-pvc-bind-wait", false, "Skip waiting for PVC to be bound.")
