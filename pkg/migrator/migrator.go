@@ -17,6 +17,7 @@ type Migrator struct {
 	DestPVCStorageClass string
 	DestPVCSize         string
 	DestPVCName         string
+	DestPVCAccessModes  []string
 
 	Force bool
 
