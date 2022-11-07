@@ -3,11 +3,9 @@ package strategies
 import (
 	"errors"
 	"fmt"
-	"io"
 	"os"
 
 	"beryju.org/korb/pkg/mover"
-	"github.com/schollz/progressbar/v3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 )
@@ -76,13 +74,9 @@ func (c *ImportStrategy) CopyInto(pod v1.Pod, config *rest.Config, localPath str
 		return err
 	}
 	defer file.Close()
-	bar := progressbar.DefaultBytes(
-		-1,
-		"uploading",
-	)
 	err = c.tempMover.Exec(pod, config, []string{
 		"tar", "xvf", "-",
-	}, io.MultiReader(file, bar), os.Stdout)
+	}, file, os.Stdout)
 	if err != nil {
 		return err
 	}
