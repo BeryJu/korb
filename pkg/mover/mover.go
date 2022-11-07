@@ -108,6 +108,8 @@ func (m *MoverJob) Start() *MoverJob {
 							ImagePullPolicy: v1.PullAlways,
 							Args:            []string{string(m.mode)},
 							VolumeMounts:    mounts,
+							TTY:             true,
+							Stdin:           true,
 						},
 					},
 				},
