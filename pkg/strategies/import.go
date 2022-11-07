@@ -74,9 +74,12 @@ func (c *ImportStrategy) CopyInto(pod v1.Pod, config *rest.Config, localPath str
 		return err
 	}
 	defer file.Close()
-	err = c.tempMover.Exec(pod, config, []string{
-		"tar", "xvf", "-",
-	}, file, os.Stdout)
+	cmd := []string{
+		"bash",
+		"-c",
+		fmt.Sprintf("cd \"%s\" && tar xvf -", mover.SourceMount),
+	}
+	err = c.tempMover.Exec(pod, config, cmd, file, os.Stdout)
 	if err != nil {
 		return err
 	}

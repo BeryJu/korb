@@ -76,9 +76,12 @@ func (c *ExportStrategy) CopyOut(pod v1.Pod, config *rest.Config, name string) (
 		-1,
 		"downloading",
 	)
-	err = c.tempMover.Exec(pod, config, []string{
-		"tar", "cvf", "-", mover.SourceMount,
-	}, nil, io.MultiWriter(file, bar))
+	cmd := []string{
+		"bash",
+		"-c",
+		fmt.Sprintf("cd \"%s\" && tar cvf - .", mover.SourceMount),
+	}
+	err = c.tempMover.Exec(pod, config, cmd, nil, io.MultiWriter(file, bar))
 	if err != nil {
 		return "", err
 	}
