@@ -3,7 +3,6 @@ package strategies
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 
 	"beryju.org/korb/pkg/mover"
@@ -67,7 +66,7 @@ func (c *ExportStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemplate *v
 }
 
 func (c *ExportStrategy) CopyOut(pod v1.Pod, config *rest.Config, name string) (string, error) {
-	file, err := ioutil.TempFile(os.TempDir(), "korb-mover-")
+	file, err := os.CreateTemp(".", "korb-mover-")
 	if err != nil {
 		return "", err
 	}
