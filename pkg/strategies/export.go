@@ -86,7 +86,9 @@ func (c *ExportStrategy) CopyOut(pod v1.Pod, config *rest.Config, name string) (
 		return "", err
 	}
 	finalPath := fmt.Sprintf("%s.tar", name)
-	os.Rename(file.Name(), finalPath)
+	if err = os.Rename(file.Name(), finalPath); err != nil {
+		return "", err
+	}
 	return finalPath, nil
 }
 
