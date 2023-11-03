@@ -101,6 +101,11 @@ func (m *MoverJob) Start() *MoverJob {
 				Spec: corev1.PodSpec{
 					Volumes:       volumes,
 					RestartPolicy: corev1.RestartPolicyOnFailure,
+					Tolerations: []corev1.Toleration{
+						{
+							Operator: corev1.TolerationOpExists,
+						},
+					},
 					Containers: []corev1.Container{
 						{
 							Name:            ContainerName,
