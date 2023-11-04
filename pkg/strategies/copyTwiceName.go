@@ -81,7 +81,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	}
 
 	c.log.WithField("stage", 2).Debug("starting mover job")
-	c.tempMover = mover.NewMoverJob(c.kClient, mover.MoverTypeSync)
+	c.tempMover = mover.NewMoverJob(c.kClient, mover.MoverTypeSync, c.tolerateAllNodes)
 	c.tempMover.Namespace = destTemplate.ObjectMeta.Namespace
 	c.tempMover.SourceVolume = sourcePVC
 	c.tempMover.DestVolume = c.TempDestPVC
@@ -110,7 +110,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	c.DestPVC = destInst
 
 	c.log.WithField("stage", 5).Debug("starting mover job to final PVC")
-	c.finalMover = mover.NewMoverJob(c.kClient, mover.MoverTypeSync)
+	c.finalMover = mover.NewMoverJob(c.kClient, mover.MoverTypeSync, c.tolerateAllNodes)
 	c.finalMover.Namespace = destTemplate.ObjectMeta.Namespace
 	c.finalMover.SourceVolume = c.TempDestPVC
 	c.finalMover.DestVolume = c.DestPVC

@@ -14,7 +14,7 @@ func (m *Migrator) Validate() (*v1.PersistentVolumeClaim, []strategies.Strategy)
 	if err != nil {
 		m.log.WithError(err).Panic("Failed to get controllers")
 	}
-	baseStrategy := strategies.NewBaseStrategy(m.kConfig, m.kClient)
+	baseStrategy := strategies.NewBaseStrategy(m.kConfig, m.kClient, m.TolerateAllNodes)
 	allStrategies := strategies.StrategyInstances(baseStrategy)
 	compatibleStrategies := make([]strategies.Strategy, 0)
 	ctx := strategies.MigrationContext{

@@ -47,7 +47,7 @@ func (c *ImportStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemplate *v
 	c.log.Warning("This strategy assumes you've stopped all pods accessing this data.")
 
 	c.log.Debug("starting mover job")
-	c.tempMover = mover.NewMoverJob(c.kClient, mover.MoverTypeSleep)
+	c.tempMover = mover.NewMoverJob(c.kClient, mover.MoverTypeSleep, c.tolerateAllNodes)
 	c.tempMover.Namespace = destTemplate.ObjectMeta.Namespace
 	c.tempMover.SourceVolume = sourcePVC
 	c.tempMover.Name = fmt.Sprintf("korb-job-%s", sourcePVC.UID)

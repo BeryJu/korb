@@ -39,15 +39,17 @@ type MoverJob struct {
 	kJob    *batchv1.Job
 	kClient *kubernetes.Clientset
 
-	mode MoverType
-	log  *log.Entry
+	mode             MoverType
+	log              *log.Entry
+	tolerateAllNodes bool
 }
 
-func NewMoverJob(client *kubernetes.Clientset, mode MoverType) *MoverJob {
+func NewMoverJob(client *kubernetes.Clientset, mode MoverType, tolerateAllNodes bool) *MoverJob {
 	return &MoverJob{
-		kClient: client,
-		log:     log.WithField("component", "mover-job"),
-		mode:    mode,
+		kClient:          client,
+		log:              log.WithField("component", "mover-job"),
+		tolerateAllNodes: tolerateAllNodes,
+		mode:             mode,
 	}
 }
 
@@ -101,11 +103,6 @@ func (m *MoverJob) Start() *MoverJob {
 				Spec: corev1.PodSpec{
 					Volumes:       volumes,
 					RestartPolicy: corev1.RestartPolicyOnFailure,
-					Tolerations: []corev1.Toleration{
-						{
-							Operator: corev1.TolerationOpExists,
-						},
-					},
 					Containers: []corev1.Container{
 						{
 							Name:            ContainerName,
@@ -121,6 +118,15 @@ func (m *MoverJob) Start() *MoverJob {
 			},
 		},
 	}
+
+	if m.tolerateAllNodes {
+		job.Spec.Template.Spec.Tolerations = []corev1.Toleration{
+			{
+				Operator: corev1.TolerationOpExists,
+			},
+		}
+	}
+
 	j, err := m.kClient.BatchV1().Jobs(m.Namespace).Create(context.TODO(), job, metav1.CreateOptions{})
 	if err != nil {
 		panic(err)
