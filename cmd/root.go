@@ -25,6 +25,7 @@ var pvcNewAccessModes []string
 
 var force bool
 var skipWaitPVCBind bool
+var tolerateAllNodes bool
 var Version string
 
 // rootCmd represents the base command when called without any subcommands
@@ -35,7 +36,7 @@ var rootCmd = &cobra.Command{
 	Args:    cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, pvc := range args {
-			m := migrator.New(kubeConfig, strategy)
+			m := migrator.New(kubeConfig, strategy, tolerateAllNodes)
 			m.Force = force
 			m.WaitForTempDestPVCBind = skipWaitPVCBind
 
@@ -92,6 +93,7 @@ func init() {
 
 	rootCmd.Flags().BoolVar(&force, "force", false, "Ignore warning which would normally halt the tool during validation.")
 	rootCmd.Flags().BoolVar(&skipWaitPVCBind, "skip-pvc-bind-wait", false, "Skip waiting for PVC to be bound.")
+	rootCmd.Flags().BoolVar(&tolerateAllNodes, "tolerate-any-node", false, "Allow job to tolerating any node node taints.")
 
 	rootCmd.Flags().StringVar(&config.ContainerImage, "container-image", config.ContainerImage, "Image to use for moving jobs")
 	rootCmd.Flags().StringVar(&strategy, "strategy", "", "Strategy to use, by default will try to auto-select")

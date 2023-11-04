@@ -12,14 +12,16 @@ type BaseStrategy struct {
 	kConfig *rest.Config
 	kClient *kubernetes.Clientset
 
-	log *log.Entry
+	log              *log.Entry
+	tolerateAllNodes bool
 }
 
-func NewBaseStrategy(config *rest.Config, client *kubernetes.Clientset) BaseStrategy {
+func NewBaseStrategy(config *rest.Config, client *kubernetes.Clientset, tolerateAllNodes bool) BaseStrategy {
 	return BaseStrategy{
-		kConfig: config,
-		kClient: client,
-		log:     log.WithField("component", "strategy"),
+		kConfig:          config,
+		kClient:          client,
+		tolerateAllNodes: tolerateAllNodes,
+		log:              log.WithField("component", "strategy"),
 	}
 }
 

@@ -19,9 +19,9 @@ type Migrator struct {
 	DestPVCName         string
 	DestPVCAccessModes  []string
 
-	Force bool
-
+	Force                  bool
 	WaitForTempDestPVCBind bool
+	TolerateAllNodes       bool
 
 	kConfig *rest.Config
 	kClient *kubernetes.Clientset
@@ -30,10 +30,11 @@ type Migrator struct {
 	strategy string
 }
 
-func New(kubeconfigPath string, strategy string) *Migrator {
+func New(kubeconfigPath string, strategy string, tolerateAllNode bool) *Migrator {
 	m := &Migrator{
-		log:      log.WithField("component", "migrator"),
-		strategy: strategy,
+		log:              log.WithField("component", "migrator"),
+		TolerateAllNodes: tolerateAllNode,
+		strategy:         strategy,
 	}
 	if kubeconfigPath != "" {
 		m.log.WithField("kubeconfig", kubeconfigPath).Debug("Created client from kubeconfig")
