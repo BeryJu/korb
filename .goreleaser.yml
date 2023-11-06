@@ -37,7 +37,7 @@ checksum:
 brews:
   - ids:
       - raw
-    tap:
+    repository:
       owner: beryju
       name: homebrew-tap
     commit_author:
