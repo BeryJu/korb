@@ -19,6 +19,8 @@ type Migrator struct {
 	DestPVCName         string
 	DestPVCAccessModes  []string
 
+	ServiceAccountName string
+
 	Force                  bool
 	WaitForTempDestPVCBind bool
 	TolerateAllNodes       bool

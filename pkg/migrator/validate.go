@@ -14,7 +14,7 @@ func (m *Migrator) Validate() (*v1.PersistentVolumeClaim, []strategies.Strategy)
 	if err != nil {
 		m.log.WithError(err).Panic("Failed to get controllers")
 	}
-	baseStrategy := strategies.NewBaseStrategy(m.kConfig, m.kClient, m.TolerateAllNodes)
+	baseStrategy := strategies.NewBaseStrategy(m.kConfig, m.kClient, m.TolerateAllNodes, m.ServiceAccountName)
 	allStrategies := strategies.StrategyInstances(baseStrategy)
 	compatibleStrategies := make([]strategies.Strategy, 0)
 	ctx := strategies.MigrationContext{
@@ -52,6 +52,12 @@ func (m *Migrator) validateSourcePVC() *v1.PersistentVolumeClaim {
 	if m.DestPVCName == "" {
 		m.log.Debug("No new Name given, using old name")
 		m.DestPVCName = pvc.Name
+	}
+	if m.ServiceAccountName == "" {
+		m.log.Debug("No new Service Account Name given, using 'default'")
+		m.ServiceAccountName = "default"
+	} else {
+		m.log.WithField("service-account-name", m.ServiceAccountName).Debug("Got Service Account Name")
 	}
 	return pvc
 }

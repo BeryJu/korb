@@ -24,7 +24,7 @@ func (m *MoverJob) getPods() []v1.Pod {
 func (m *MoverJob) WaitForRunning() *v1.Pod {
 	// First we wait for all pods to be running
 	var runningPod v1.Pod
-	err := wait.PollImmediate(2*time.Second, 60*time.Second, func() (bool, error) {
+	err := wait.PollImmediate(15*time.Second, 120*time.Second, func() (bool, error) {
 		pods := m.getPods()
 		if len(pods) != 1 {
 			return false, nil

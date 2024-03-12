@@ -36,6 +36,8 @@ type MoverJob struct {
 	SourceVolume *corev1.PersistentVolumeClaim
 	DestVolume   *corev1.PersistentVolumeClaim
 
+	ServiceAccountName string
+
 	kJob    *batchv1.Job
 	kClient *kubernetes.Clientset
 
@@ -101,22 +103,36 @@ func (m *MoverJob) Start() *MoverJob {
 					},
 				},
 				Spec: corev1.PodSpec{
-					Volumes:       volumes,
-					RestartPolicy: corev1.RestartPolicyOnFailure,
+					Volumes:            volumes,
+					RestartPolicy:      corev1.RestartPolicyOnFailure,
+					ServiceAccountName: m.ServiceAccountName,
 					Containers: []corev1.Container{
 						{
 							Name:            ContainerName,
 							Image:           config.ContainerImage,
 							ImagePullPolicy: v1.PullAlways,
-							Args:            []string{string(m.mode)},
-							VolumeMounts:    mounts,
-							TTY:             true,
-							Stdin:           true,
+							// Args:            []string{string(m.mode)},
+							VolumeMounts: mounts,
+							TTY:          true,
+							Stdin:        true,
+							// Command:      strings.Split("rsync -axHAX -O --progress /source/ /dest", " "),
+							// Args:         []string{"ls -alZ /source /dest", "rsync -aHA -O --progress /source/ /dest"},
+							// Command:      strings.Split("sh -c", " "),
+							// Command: 			 strings.Split("ls -al /source; ls -al /dest; rsync -arHA -O --progress /source/ /dest", " "),
+							// Command: "rsync",
+							// Args: "rsync -aHA -O --progress /source/ /dest"
 						},
 					},
 				},
 			},
 		},
+	}
+
+	if m.ServiceAccountName == "" {
+		m.log.Debug("No new Service Account Name given, using 'default'")
+	} else {
+		m.log.WithField("service-account-name", m.ServiceAccountName).Debug("Got Service Account Name")
+		//		m.log.Debug("New Service Account Name: 'default'")
 	}
 
 	if m.tolerateAllNodes {

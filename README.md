@@ -31,6 +31,7 @@ Flags:
       --new-pvc-namespace string       Namespace for the new PVCs to be created in. If empty, the namespace from your kubeconfig file will be used.
       --new-pvc-size string            Size for the new PVC. If empty, the size of the source will be used. Accepts formats like used in Kubernetes Manifests (Gi, Ti, ...)
       --new-pvc-storage-class string   Storage class to use for the new PVC. If empty, the storage class of the source will be used.
+      --serivce-account-name string    Service Account Name to use for the Job. If empty, 'default' will be used.
       --skip-pvc-bind-wait             Skip waiting for PVC to be bound.
       --source-namespace string        Namespace where the old PVCs reside. If empty, the namespace from your kubeconfig file will be used.
       --strategy string                Strategy to use, by default will try to auto-select
@@ -125,4 +126,50 @@ tar: Removing leading `/' from member names
 INFO[0039] Finished copying                              component=strategy strategy=export
 INFO[0039] Export at 'overseerr-config.tar'              component=strategy strategy=export
 INFO[0039] Cleaning up...                                component=strategy strategy=export
+```
+
+### Example (Moving from PVC to PVC with custom ServiceAccountName and ContainerImage)
+
+```
+~ ./korb --new-pvc-storage-class ontap-ssd redis-data-redis-master-0 --service-account-name korb-privileged --container-image quay.revoweb.com/therevoman/korb-mover-ubi9:v2
+DEBU[0000] Created client from kubeconfig                component=migrator kubeconfig=/home/jens/.kube/config
+DEBU[0000] Got current namespace                         component=migrator namespace=prod-beryju-org
+DEBU[0000] Got Source PVC                                component=migrator name=redis-data-redis-master-0 uid=e4b5476f-b965-4e81-bfee-d7cbbf4f6317
+DEBU[0000] Got Service Account Name                      component=migrator service-account-name=korb-privileged
+DEBU[0000] No new Name given, using old name             component=migrator
+DEBU[0000] Compatible Strategies:                        component=migrator
+DEBU[0000] Copy the PVC to the new Storage class and with new size and a new name, delete the old PVC, and copy it back to the old name.  component=migrator
+DEBU[0000] Only one compatible strategy, running         component=migrator
+DEBU[0000] Set timeout from PVC size                     component=strategy strategy=copy-twice-name timeout=8m0s
+WARN[0000] This strategy assumes you've stopped all pods accessing this data.  component=strategy strategy=copy-twice-name
+DEBU[0000] creating temporary PVC                        component=strategy stage=1 strategy=copy-twice-name
+DEBU[0002] starting mover job                            component=strategy stage=2 strategy=copy-twice-name
+DEBU[0002] Got Service Account Name                      component=mover-job service-account-name=korb-privileged
+DEBU[0004] Pod not in correct state yet                  component=mover-job phase=Pending
+DEBU[0006] Pod not in correct state yet                  component=mover-job phase=Pending
+[...]
+[mover logs]: sending incremental file list
+[mover logs]: ./
+[mover logs]: appendonly.aof
+              0 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=1/3)
+[mover logs]: dump.rdb
+            175 100%    0.00kB/s    0:00:00 (xfr#2, to-chk=0/3)
+DEBU[0022] Cleaning up successful job                    component=mover-job
+DEBU[0022] deleting original PVC                         component=strategy stage=3 strategy=copy-twice-name
+DEBU[0024] creating final destination PVC                component=strategy stage=4 strategy=copy-twice-name
+DEBU[0024] starting mover job to final PVC               component=strategy stage=5 strategy=copy-twice-name
+DEBU[0024] Got Service Account Name                      component=mover-job service-account-name=korb-privileged
+DEBU[0026] Pod not in correct state yet                  component=mover-job phase=Pending
+DEBU[0028] Pod not in correct state yet                  component=mover-job phase=Pending
+[...]
+[mover logs]: sending incremental file list
+[mover logs]: ./
+[mover logs]: appendonly.aof
+              0 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=1/3)
+[mover logs]: dump.rdb
+            175 100%    0.00kB/s    0:00:00 (xfr#2, to-chk=0/3)
+DEBU[0048] Cleaning up successful job                    component=mover-job
+DEBU[0048] deleting temporary PVC                        component=strategy stage=6 strategy=copy-twice-name
+INFO[0050] And we're done                                component=strategy strategy=copy-twice-name
+INFO[0050] Cleaning up...                                component=strategy strategy=copy-twice-name
 ```

@@ -85,6 +85,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	c.tempMover.Namespace = destTemplate.ObjectMeta.Namespace
 	c.tempMover.SourceVolume = sourcePVC
 	c.tempMover.DestVolume = c.TempDestPVC
+	c.tempMover.ServiceAccountName = c.serviceAccountName
 	c.tempMover.Name = fmt.Sprintf("korb-job-%s", sourcePVC.UID)
 	err = c.tempMover.Start().Wait(c.MoveTimeout)
 	if err != nil {
