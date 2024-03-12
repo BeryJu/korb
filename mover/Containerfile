@@ -1,0 +1,8 @@
+FROM registry.redhat.io/ubi9/toolbox:latest
+# For OpenShift use a Red Hat base image.  The toolbox is large but has everything needed for rsync and additional debugging
+
+VOLUME [ "/source", "/dest" ]
+
+COPY ./entrypoint-ocp.sh /bin/entrypoint
+
+ENTRYPOINT [ "/bin/entrypoint" ]
