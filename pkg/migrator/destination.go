@@ -41,7 +41,7 @@ func (m *Migrator) GetDestinationPVCTemplate(sourcePVC *v1.PersistentVolumeClaim
 		},
 		Spec: v1.PersistentVolumeClaimSpec{
 			AccessModes: m.GetDestPVCAccessModes(sourcePVC.Spec.AccessModes),
-			Resources: v1.ResourceRequirements{
+			Resources: v1.VolumeResourceRequirements{
 				Requests: v1.ResourceList{
 					v1.ResourceName(v1.ResourceStorage): m.GetDestPVCSize(*sourcePVC.Spec.Resources.Requests.Storage()),
 				},

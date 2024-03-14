@@ -1,6 +1,8 @@
 module beryju.org/korb
 
-go 1.20
+go 1.21
+
+toolchain go1.22.0
 
 require (
 	github.com/goware/prefixer v0.0.0-20160118172347-395022866408
