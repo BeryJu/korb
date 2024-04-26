@@ -1,4 +1,4 @@
-// flag: export
+// flag: import
 // Behavior: Imports a tar archive into pvc
 
 package strategies
