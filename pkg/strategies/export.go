@@ -1,3 +1,6 @@
+// flag: export
+// Behavior: Exports a tar archive of the pvc to your $pwd
+
 package strategies
 
 import (

@@ -38,6 +38,9 @@ Flags:
 requires at least 1 arg(s), only received 0
 ```
 
+#### Strategies
+To see existing [strategies](https://github.com/BeryJu/korb/tree/main/pkg/strategies) and what they do, please check out the comments in source code of the strategy.
+
 ### Example (Moving from PVC to PVC)
 
 ```

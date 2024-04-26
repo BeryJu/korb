@@ -1,3 +1,6 @@
+// flag: copy-twice-name
+// Behavior:  Copy the PVC to the new Storage class and with new size and a new name, delete the old PVC, and copy it back to the old name.
+
 package strategies
 
 import (
