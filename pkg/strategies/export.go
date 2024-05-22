@@ -51,7 +51,7 @@ func (c *ExportStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemplate *v
 	c.tempMover.SourceVolume = sourcePVC
 	c.tempMover.Name = fmt.Sprintf("korb-job-%s", sourcePVC.UID)
 
-	pod := c.tempMover.Start().WaitForRunning()
+	pod := c.tempMover.Start().WaitForRunning(c.timeout)
 	if pod == nil {
 		c.log.Warning("Failed to move data")
 		return c.Cleanup()

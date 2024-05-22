@@ -18,15 +18,17 @@ Download the binary of the latest release from https://github.com/BeryJu/korb/re
 ### Usage
 
 ```
-Error: requires at least 1 arg(s), only received 0
+Move data between Kubernetes PVCs on different Storage Classes.
+
 Usage:
   korb [pvc [pvc]] [flags]
 
 Flags:
-      --container-image string         Image to use for moving jobs (default "ghcr.io/beryju/korb-mover:latest")
+      --container-image string         Image to use for moving jobs (default "ghcr.io/beryju/korb-mover:v2")
       --force                          Ignore warning which would normally halt the tool during validation.
   -h, --help                           help for korb
       --kube-config string             (optional) absolute path to the kubeconfig file (default "/Users/jens/.kube/config")
+      --new-pvc-access-mode strings    Access mode(s) for the new PVC. If empty, the access mode of the source will be used. Accepts formats like used in Kubernetes Manifests (ReadWriteOnce, ReadWriteMany, ...)
       --new-pvc-name string            Name for the new PVC. If empty, same name will be reused.
       --new-pvc-namespace string       Namespace for the new PVCs to be created in. If empty, the namespace from your kubeconfig file will be used.
       --new-pvc-size string            Size for the new PVC. If empty, the size of the source will be used. Accepts formats like used in Kubernetes Manifests (Gi, Ti, ...)
@@ -34,11 +36,12 @@ Flags:
       --skip-pvc-bind-wait             Skip waiting for PVC to be bound.
       --source-namespace string        Namespace where the old PVCs reside. If empty, the namespace from your kubeconfig file will be used.
       --strategy string                Strategy to use, by default will try to auto-select
-
-requires at least 1 arg(s), only received 0
+      --timeout string                 Overwrite auto-generated timeout (by default 60s for Pod to start, copy timeout is based on PVC size)
+      --tolerate-any-node              Allow job to tolerating any node node taints.
 ```
 
 #### Strategies
+
 To see existing [strategies](https://github.com/BeryJu/korb/tree/main/pkg/strategies) and what they do, please check out the comments in source code of the strategy.
 
 ### Example (Moving from PVC to PVC)

@@ -1,6 +1,8 @@
 package strategies
 
 import (
+	"time"
+
 	log "github.com/sirupsen/logrus"
 
 	v1 "k8s.io/api/core/v1"
@@ -14,13 +16,21 @@ type BaseStrategy struct {
 
 	log              *log.Entry
 	tolerateAllNodes bool
+	timeout          time.Duration
 }
 
-func NewBaseStrategy(config *rest.Config, client *kubernetes.Clientset, tolerateAllNodes bool) BaseStrategy {
+func NewBaseStrategy(config *rest.Config, client *kubernetes.Clientset, tolerateAllNodes bool, timeout *time.Duration) BaseStrategy {
+	var t time.Duration
+	if timeout == nil {
+		t = 60 * time.Second
+	} else {
+		t = *timeout
+	}
 	return BaseStrategy{
 		kConfig:          config,
 		kClient:          client,
 		tolerateAllNodes: tolerateAllNodes,
+		timeout:          t,
 		log:              log.WithField("component", "strategy"),
 	}
 }

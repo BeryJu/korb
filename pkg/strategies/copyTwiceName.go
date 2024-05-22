@@ -89,7 +89,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	c.tempMover.SourceVolume = sourcePVC
 	c.tempMover.DestVolume = c.TempDestPVC
 	c.tempMover.Name = fmt.Sprintf("korb-job-%s", sourcePVC.UID)
-	err = c.tempMover.Start().Wait(c.MoveTimeout)
+	err = c.tempMover.Start().Wait(c.timeout, c.MoveTimeout)
 	if err != nil {
 		c.log.WithError(err).Warning("Failed to move data")
 		c.pvcsToDelete = []*v1.PersistentVolumeClaim{c.TempDestPVC}
@@ -118,7 +118,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	c.finalMover.SourceVolume = c.TempDestPVC
 	c.finalMover.DestVolume = c.DestPVC
 	c.finalMover.Name = fmt.Sprintf("korb-job-%s", tempDestInst.UID)
-	err = c.finalMover.Start().Wait(c.MoveTimeout)
+	err = c.finalMover.Start().Wait(c.timeout, c.MoveTimeout)
 	if err != nil {
 		c.log.WithError(err).Warning("Failed to move data")
 		c.pvcsToDelete = []*v1.PersistentVolumeClaim{c.DestPVC}
@@ -157,7 +157,7 @@ func (c *CopyTwiceNameStrategy) setTimeout(pvc *v1.PersistentVolumeClaim) {
 }
 
 func (c *CopyTwiceNameStrategy) waitForPVCDeletion(pvc *v1.PersistentVolumeClaim) error {
-	return wait.Poll(2*time.Second, 30*time.Second, func() (bool, error) {
+	return wait.Poll(2*time.Second, c.timeout, func() (bool, error) {
 		_, err := c.kClient.CoreV1().PersistentVolumeClaims(pvc.ObjectMeta.Namespace).Get(context.TODO(), pvc.ObjectMeta.Name, metav1.GetOptions{})
 		if errors.IsNotFound(err) {
 			return true, nil
@@ -168,7 +168,7 @@ func (c *CopyTwiceNameStrategy) waitForPVCDeletion(pvc *v1.PersistentVolumeClaim
 }
 
 func (c *CopyTwiceNameStrategy) waitForBound(pvc *v1.PersistentVolumeClaim) error {
-	return wait.Poll(2*time.Second, 30*time.Second, func() (bool, error) {
+	return wait.Poll(2*time.Second, c.timeout, func() (bool, error) {
 		pvc, err := c.kClient.CoreV1().PersistentVolumeClaims(pvc.ObjectMeta.Namespace).Get(context.TODO(), pvc.ObjectMeta.Name, metav1.GetOptions{})
 		if err != nil {
 			return false, err

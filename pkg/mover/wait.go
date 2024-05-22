@@ -11,9 +11,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-func (m *MoverJob) getPods() []v1.Pod {
+func (m *MoverJob) getPods(ctx context.Context) []v1.Pod {
 	selector := fmt.Sprintf("job-name=%s", m.Name)
-	pods, err := m.kClient.CoreV1().Pods(m.Namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: selector})
+	pods, err := m.kClient.CoreV1().Pods(m.Namespace).List(ctx, metav1.ListOptions{LabelSelector: selector})
 	if err != nil {
 		m.log.WithError(err).Warning("Failed to get pods")
 		return make([]v1.Pod, 0)
@@ -21,11 +21,11 @@ func (m *MoverJob) getPods() []v1.Pod {
 	return pods.Items
 }
 
-func (m *MoverJob) WaitForRunning() *v1.Pod {
+func (m *MoverJob) WaitForRunning(timeout time.Duration) *v1.Pod {
 	// First we wait for all pods to be running
 	var runningPod v1.Pod
-	err := wait.PollImmediate(2*time.Second, 60*time.Second, func() (bool, error) {
-		pods := m.getPods()
+	err := wait.PollUntilContextTimeout(context.Background(), 2*time.Second, timeout, true, func(ctx context.Context) (bool, error) {
+		pods := m.getPods(ctx)
 		if len(pods) != 1 {
 			return false, nil
 		}
@@ -44,16 +44,16 @@ func (m *MoverJob) WaitForRunning() *v1.Pod {
 	return &runningPod
 }
 
-func (m *MoverJob) Wait(timeout time.Duration) error {
-	pod := m.WaitForRunning()
+func (m *MoverJob) Wait(startTimeout time.Duration, moveTimeout time.Duration) error {
+	pod := m.WaitForRunning(startTimeout)
 	if pod == nil {
 		return errors.New("pod not in correct state")
 	}
 	runningPod := *pod
 	go m.followLogs(runningPod)
 
-	err := wait.PollImmediate(2*time.Second, timeout, func() (bool, error) {
-		job, err := m.kClient.BatchV1().Jobs(m.Namespace).Get(context.TODO(), m.kJob.Name, metav1.GetOptions{})
+	err := wait.PollUntilContextTimeout(context.Background(), 2*time.Second, moveTimeout, true, func(ctx context.Context) (bool, error) {
+		job, err := m.kClient.BatchV1().Jobs(m.Namespace).Get(ctx, m.kJob.Name, metav1.GetOptions{})
 		if err != nil {
 			return false, err
 		}

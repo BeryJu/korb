@@ -37,7 +37,7 @@ func (c *ImportStrategy) CompatibleWithContext(ctx MigrationContext) error {
 	path := fmt.Sprintf("%s.tar", ctx.SourcePVC.Name)
 	_, err := os.Stat(path)
 	if errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("Expected import file '%s' does not exist", path)
+		return fmt.Errorf("expected import file '%s' does not exist", path)
 	}
 	return nil
 }
@@ -55,7 +55,7 @@ func (c *ImportStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemplate *v
 	c.tempMover.SourceVolume = sourcePVC
 	c.tempMover.Name = fmt.Sprintf("korb-job-%s", sourcePVC.UID)
 
-	pod := c.tempMover.Start().WaitForRunning()
+	pod := c.tempMover.Start().WaitForRunning(c.timeout)
 	if pod == nil {
 		c.log.Warning("Failed to move data")
 		return c.Cleanup()

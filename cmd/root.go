@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"beryju.org/korb/pkg/config"
 	"beryju.org/korb/pkg/migrator"
@@ -26,6 +27,8 @@ var pvcNewAccessModes []string
 var force bool
 var skipWaitPVCBind bool
 var tolerateAllNodes bool
+var timeout string
+
 var Version string
 
 // rootCmd represents the base command when called without any subcommands
@@ -35,10 +38,20 @@ var rootCmd = &cobra.Command{
 	Long:    `Move data between Kubernetes PVCs on different Storage Classes.`,
 	Args:    cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		var t *time.Duration
+		if timeout != "" {
+			_t, err := time.ParseDuration(timeout)
+			if err != nil {
+				log.WithError(err).Panic("Failed to parse custom duration")
+				return
+			}
+			t = &_t
+		}
 		for _, pvc := range args {
 			m := migrator.New(kubeConfig, strategy, tolerateAllNodes)
 			m.Force = force
 			m.WaitForTempDestPVCBind = skipWaitPVCBind
+			m.Timeout = t
 
 			// We can only support operating in a single namespace currently
 			// Since cross-namespace PVC mounts are not a thing
@@ -97,4 +110,5 @@ func init() {
 
 	rootCmd.Flags().StringVar(&config.ContainerImage, "container-image", config.ContainerImage, "Image to use for moving jobs")
 	rootCmd.Flags().StringVar(&strategy, "strategy", "", "Strategy to use, by default will try to auto-select")
+	rootCmd.Flags().StringVar(&timeout, "timeout", "", "Overwrite auto-generated timeout (by default 60s for Pod to start, copy timeout is based on PVC size)")
 }

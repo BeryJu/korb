@@ -1,6 +1,8 @@
 package migrator
 
 import (
+	"time"
+
 	"beryju.org/korb/pkg/strategies"
 	log "github.com/sirupsen/logrus"
 
@@ -22,6 +24,7 @@ type Migrator struct {
 	Force                  bool
 	WaitForTempDestPVCBind bool
 	TolerateAllNodes       bool
+	Timeout                *time.Duration
 
 	kConfig *rest.Config
 	kClient *kubernetes.Clientset
