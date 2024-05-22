@@ -11,7 +11,6 @@ import (
 
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -107,7 +106,7 @@ func (m *MoverJob) Start() *MoverJob {
 						{
 							Name:            ContainerName,
 							Image:           config.ContainerImage,
-							ImagePullPolicy: v1.PullAlways,
+							ImagePullPolicy: corev1.PullAlways,
 							Args:            []string{string(m.mode)},
 							VolumeMounts:    mounts,
 							TTY:             true,
@@ -127,7 +126,7 @@ func (m *MoverJob) Start() *MoverJob {
 		}
 	}
 
-	j, err := m.kClient.BatchV1().Jobs(m.Namespace).Create(context.TODO(), job, metav1.CreateOptions{})
+	j, err := m.kClient.BatchV1().Jobs(m.Namespace).Create(context.Background(), job, metav1.CreateOptions{})
 	if err != nil {
 		panic(err)
 	}
@@ -135,7 +134,7 @@ func (m *MoverJob) Start() *MoverJob {
 	return m
 }
 
-func (m *MoverJob) followLogs(pod v1.Pod) {
+func (m *MoverJob) followLogs(pod corev1.Pod) {
 	req := m.kClient.CoreV1().Pods(m.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{
 		Follow:    true,
 		Container: ContainerName,
@@ -149,7 +148,10 @@ func (m *MoverJob) followLogs(pod v1.Pod) {
 	prefixReader := prefixer.New(podLogs, "[mover logs]: ")
 
 	for {
-		io.Copy(os.Stdout, prefixReader)
+		_, err := io.Copy(os.Stdout, prefixReader)
+		if err != nil {
+			m.log.WithError(err).Warning("failed to copy")
+		}
 	}
 }
 
@@ -161,14 +163,17 @@ func (m *MoverJob) getDeleteOptions() metav1.DeleteOptions {
 }
 
 func (m *MoverJob) Cleanup() error {
-	err := m.kClient.BatchV1().Jobs(m.Namespace).Delete(context.TODO(), m.Name, m.getDeleteOptions())
+	err := m.kClient.BatchV1().Jobs(m.Namespace).Delete(context.Background(), m.Name, m.getDeleteOptions())
 	if err != nil {
-		m.log.WithError(err).Debug("Failed to delete job")
+		m.log.WithError(err).WithField("name", m.Name).Debug("Failed to delete job")
 		return err
 	}
-	pods := m.getPods()
+	pods := m.getPods(context.Background())
 	for _, pod := range pods {
-		m.kClient.CoreV1().Pods(m.Namespace).Delete(context.TODO(), pod.Name, m.getDeleteOptions())
+		err := m.kClient.CoreV1().Pods(m.Namespace).Delete(context.Background(), pod.Name, m.getDeleteOptions())
+		if err != nil {
+			m.log.WithError(err).WithField("name", pod.Name).Warning("failed to delete pod")
+		}
 	}
 	return nil
 }

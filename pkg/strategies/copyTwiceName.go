@@ -102,7 +102,11 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 		c.log.WithError(err).Warning("Failed to delete source pvc")
 		return c.Cleanup()
 	}
-	c.waitForPVCDeletion(sourcePVC)
+	err = c.waitForPVCDeletion(sourcePVC)
+	if err != nil {
+		c.log.WithError(err).Warning("failed to delete source pvc")
+		return c.Cleanup()
+	}
 
 	c.log.WithField("stage", 4).Debug("creating final destination PVC")
 	destInst, err := c.kClient.CoreV1().PersistentVolumeClaims(destTemplate.ObjectMeta.Namespace).Create(context.TODO(), destTemplate, metav1.CreateOptions{})
@@ -128,10 +132,14 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	c.log.WithField("stage", 6).Debug("deleting temporary PVC")
 	err = c.kClient.CoreV1().PersistentVolumeClaims(destTemplate.ObjectMeta.Namespace).Delete(context.TODO(), c.TempDestPVC.Name, c.getDeleteOptions())
 	if err != nil {
-		c.log.WithError(err).Warning("Failed to delete temporary destination pvc")
+		c.log.WithError(err).Warning("failed to delete temporary destination pvc")
 		return c.Cleanup()
 	}
-	c.waitForPVCDeletion(c.TempDestPVC)
+	err = c.waitForPVCDeletion(c.TempDestPVC)
+	if err != nil {
+		c.log.WithError(err).Warning("failed to delete temporary destination pvc")
+		return c.Cleanup()
+	}
 
 	c.log.Info("And we're done")
 
@@ -157,8 +165,8 @@ func (c *CopyTwiceNameStrategy) setTimeout(pvc *v1.PersistentVolumeClaim) {
 }
 
 func (c *CopyTwiceNameStrategy) waitForPVCDeletion(pvc *v1.PersistentVolumeClaim) error {
-	return wait.Poll(2*time.Second, c.timeout, func() (bool, error) {
-		_, err := c.kClient.CoreV1().PersistentVolumeClaims(pvc.ObjectMeta.Namespace).Get(context.TODO(), pvc.ObjectMeta.Name, metav1.GetOptions{})
+	return wait.PollUntilContextTimeout(context.Background(), 2*time.Second, c.timeout, true, func(ctx context.Context) (bool, error) {
+		_, err := c.kClient.CoreV1().PersistentVolumeClaims(pvc.ObjectMeta.Namespace).Get(ctx, pvc.ObjectMeta.Name, metav1.GetOptions{})
 		if errors.IsNotFound(err) {
 			return true, nil
 		}
@@ -168,8 +176,8 @@ func (c *CopyTwiceNameStrategy) waitForPVCDeletion(pvc *v1.PersistentVolumeClaim
 }
 
 func (c *CopyTwiceNameStrategy) waitForBound(pvc *v1.PersistentVolumeClaim) error {
-	return wait.Poll(2*time.Second, c.timeout, func() (bool, error) {
-		pvc, err := c.kClient.CoreV1().PersistentVolumeClaims(pvc.ObjectMeta.Namespace).Get(context.TODO(), pvc.ObjectMeta.Name, metav1.GetOptions{})
+	return wait.PollUntilContextTimeout(context.Background(), 2*time.Second, c.timeout, true, func(ctx context.Context) (bool, error) {
+		pvc, err := c.kClient.CoreV1().PersistentVolumeClaims(pvc.ObjectMeta.Namespace).Get(ctx, pvc.ObjectMeta.Name, metav1.GetOptions{})
 		if err != nil {
 			return false, err
 		}

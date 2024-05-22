@@ -97,7 +97,7 @@ func (c *ExportStrategy) CopyOut(pod v1.Pod, config *rest.Config, name string) (
 func (c *ExportStrategy) Cleanup() error {
 	c.log.Info("Cleaning up...")
 	if c.tempMover != nil {
-		c.tempMover.Cleanup()
+		return c.tempMover.Cleanup()
 	}
 	return nil
 }

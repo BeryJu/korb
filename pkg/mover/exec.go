@@ -2,6 +2,7 @@ package mover
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"os"
 
@@ -33,13 +34,16 @@ func (m *MoverJob) Exec(pod v1.Pod, config *rest.Config, cmd []string, input io.
 	done := false
 	go func() {
 		for {
-			io.Copy(os.Stdout, prefixReader)
+			_, err := io.Copy(os.Stdout, prefixReader)
+			if err != nil {
+				m.log.WithError(err).Warning("failed to copy")
+			}
 			if done {
 				return
 			}
 		}
 	}()
-	err = exec.Stream(remotecommand.StreamOptions{
+	err = exec.StreamWithContext(context.Background(), remotecommand.StreamOptions{
 		Stdin:  input,
 		Stdout: output,
 		Stderr: os.Stdout,

@@ -92,7 +92,7 @@ func (c *ImportStrategy) CopyInto(pod v1.Pod, config *rest.Config, localPath str
 func (c *ImportStrategy) Cleanup() error {
 	c.log.Info("Cleaning up...")
 	if c.tempMover != nil {
-		c.tempMover.Cleanup()
+		return c.tempMover.Cleanup()
 	}
 	return nil
 }
