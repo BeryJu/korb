@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"beryju.org/korb/pkg/mover"
+	"beryju.org/korb/v2/pkg/mover"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

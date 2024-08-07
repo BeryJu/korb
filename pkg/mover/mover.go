@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"beryju.org/korb/pkg/config"
+	"beryju.org/korb/v2/pkg/config"
 	"github.com/goware/prefixer"
 	log "github.com/sirupsen/logrus"
 

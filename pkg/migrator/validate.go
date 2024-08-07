@@ -3,7 +3,7 @@ package migrator
 import (
 	"context"
 
-	"beryju.org/korb/pkg/strategies"
+	"beryju.org/korb/v2/pkg/strategies"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

@@ -1,4 +1,4 @@
-module beryju.org/korb
+module beryju.org/korb/v2
 
 go 1.22.0
 

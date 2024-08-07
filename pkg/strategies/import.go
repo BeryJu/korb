@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	"beryju.org/korb/pkg/mover"
+	"beryju.org/korb/v2/pkg/mover"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 )
