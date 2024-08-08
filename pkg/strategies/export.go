@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 
-	"beryju.org/korb/pkg/mover"
+	"beryju.org/korb/v2/pkg/mover"
 	"github.com/schollz/progressbar/v3"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"

@@ -3,7 +3,7 @@ package migrator
 import (
 	"time"
 
-	"beryju.org/korb/pkg/strategies"
+	"beryju.org/korb/v2/pkg/strategies"
 	log "github.com/sirupsen/logrus"
 
 	"k8s.io/client-go/kubernetes"
