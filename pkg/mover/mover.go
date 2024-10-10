@@ -5,9 +5,10 @@ import (
 	"io"
 	"os"
 
-	"beryju.org/korb/v2/pkg/config"
 	"github.com/goware/prefixer"
 	log "github.com/sirupsen/logrus"
+
+	"beryju.org/korb/v2/pkg/config"
 
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -26,8 +27,10 @@ const (
 	MoverTypeSleep MoverType = "sleep"
 )
 
-const SourceMount = "/source"
-const DestMount = "/dest"
+const (
+	SourceMount = "/source"
+	DestMount   = "/dest"
+)
 
 type MoverJob struct {
 	Name         string
@@ -149,6 +152,11 @@ func (m *MoverJob) followLogs(pod corev1.Pod) {
 
 	for {
 		_, err := io.Copy(os.Stdout, prefixReader)
+		if err != nil && err == io.EOF {
+			m.log.Debug("log stream complete")
+			break
+		}
+
 		if err != nil {
 			m.log.WithError(err).Warning("failed to copy")
 		}

@@ -35,6 +35,11 @@ func (m *MoverJob) Exec(pod v1.Pod, config *rest.Config, cmd []string, input io.
 	go func() {
 		for {
 			_, err := io.Copy(os.Stdout, prefixReader)
+			if err != nil && err == io.EOF {
+				m.log.Debug("log stream complete")
+				break
+			}
+
 			if err != nil {
 				m.log.WithError(err).Warning("failed to copy")
 			}
