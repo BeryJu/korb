@@ -1,10 +1,12 @@
 package migrator
 
 import (
+	"context"
 	"time"
 
-	"beryju.org/korb/v2/pkg/strategies"
 	log "github.com/sirupsen/logrus"
+
+	"beryju.org/korb/v2/pkg/strategies"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -25,17 +27,20 @@ type Migrator struct {
 	WaitForTempDestPVCBind bool
 	TolerateAllNodes       bool
 	Timeout                *time.Duration
+	CopyTimeout            *time.Duration
 
 	kConfig *rest.Config
 	kClient *kubernetes.Clientset
 
 	log      *log.Entry
 	strategy string
+	ctx      context.Context
 }
 
-func New(kubeconfigPath string, strategy string, tolerateAllNode bool) *Migrator {
+func New(ctx context.Context, kubeconfigPath string, strategy string, tolerateAllNode bool) *Migrator {
 	m := &Migrator{
 		log:              log.WithField("component", "migrator"),
+		ctx:              ctx,
 		TolerateAllNodes: tolerateAllNode,
 		strategy:         strategy,
 	}
@@ -47,7 +52,6 @@ func New(kubeconfigPath string, strategy string, tolerateAllNode bool) *Migrator
 
 		// use the current context in kubeconfig
 		config, err := cc.ClientConfig()
-
 		if err != nil {
 			m.log.WithError(err).Panic("Failed to get client config")
 		}
