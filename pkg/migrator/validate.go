@@ -1,8 +1,6 @@
 package migrator
 
 import (
-	"context"
-
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -41,7 +39,7 @@ func (m *Migrator) Validate() (*v1.PersistentVolumeClaim, []strategies.Strategy)
 }
 
 func (m *Migrator) validateSourcePVC() *v1.PersistentVolumeClaim {
-	pvc, err := m.kClient.CoreV1().PersistentVolumeClaims(m.SourceNamespace).Get(context.TODO(), m.SourcePVCName, metav1.GetOptions{})
+	pvc, err := m.kClient.CoreV1().PersistentVolumeClaims(m.SourceNamespace).Get(m.ctx, m.SourcePVCName, metav1.GetOptions{})
 	if err != nil {
 		m.log.WithError(err).Panic("Failed to get Source PVC")
 	}

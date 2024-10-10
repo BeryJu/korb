@@ -68,7 +68,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	tempDest.Name = fmt.Sprintf("%s-copy-%d", tempDest.Name, suffix)
 
 	c.log.WithField("stage", 1).Debug("creating temporary PVC")
-	tempDestInst, err := c.kClient.CoreV1().PersistentVolumeClaims(destTemplate.ObjectMeta.Namespace).Create(context.TODO(), tempDest, metav1.CreateOptions{})
+	tempDestInst, err := c.kClient.CoreV1().PersistentVolumeClaims(destTemplate.ObjectMeta.Namespace).Create(c.ctx, tempDest, metav1.CreateOptions{})
 	c.TempDestPVC = tempDestInst
 	if err != nil {
 		return err
@@ -85,7 +85,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	}
 
 	c.log.WithField("stage", 2).Debug("starting mover job")
-	c.tempMover = mover.NewMoverJob(c.kClient, mover.MoverTypeSync, c.tolerateAllNodes)
+	c.tempMover = mover.NewMoverJob(c.ctx, c.kClient, mover.MoverTypeSync, c.tolerateAllNodes)
 	c.tempMover.Namespace = destTemplate.Namespace
 	c.tempMover.SourceVolume = sourcePVC
 	c.tempMover.DestVolume = c.TempDestPVC
@@ -98,7 +98,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	}
 
 	c.log.WithField("stage", 3).Debug("deleting original PVC")
-	err = c.kClient.CoreV1().PersistentVolumeClaims(sourcePVC.ObjectMeta.Namespace).Delete(context.TODO(), sourcePVC.Name, c.getDeleteOptions())
+	err = c.kClient.CoreV1().PersistentVolumeClaims(sourcePVC.ObjectMeta.Namespace).Delete(c.ctx, sourcePVC.Name, c.getDeleteOptions())
 	if err != nil {
 		c.log.WithError(err).Warning("Failed to delete source pvc")
 		return c.Cleanup()
@@ -110,7 +110,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	}
 
 	c.log.WithField("stage", 4).Debug("creating final destination PVC")
-	destInst, err := c.kClient.CoreV1().PersistentVolumeClaims(destTemplate.ObjectMeta.Namespace).Create(context.TODO(), destTemplate, metav1.CreateOptions{})
+	destInst, err := c.kClient.CoreV1().PersistentVolumeClaims(destTemplate.ObjectMeta.Namespace).Create(c.ctx, destTemplate, metav1.CreateOptions{})
 	if err != nil {
 		c.log.WithError(err).Warning("Failed to create final pvc")
 		return c.Cleanup()
@@ -118,7 +118,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	c.DestPVC = destInst
 
 	c.log.WithField("stage", 5).Debug("starting mover job to final PVC")
-	c.finalMover = mover.NewMoverJob(c.kClient, mover.MoverTypeSync, c.tolerateAllNodes)
+	c.finalMover = mover.NewMoverJob(c.ctx, c.kClient, mover.MoverTypeSync, c.tolerateAllNodes)
 	c.finalMover.Namespace = destTemplate.Namespace
 	c.finalMover.SourceVolume = c.TempDestPVC
 	c.finalMover.DestVolume = c.DestPVC
@@ -131,7 +131,7 @@ func (c *CopyTwiceNameStrategy) Do(sourcePVC *v1.PersistentVolumeClaim, destTemp
 	}
 
 	c.log.WithField("stage", 6).Debug("deleting temporary PVC")
-	err = c.kClient.CoreV1().PersistentVolumeClaims(destTemplate.ObjectMeta.Namespace).Delete(context.TODO(), c.TempDestPVC.Name, c.getDeleteOptions())
+	err = c.kClient.CoreV1().PersistentVolumeClaims(destTemplate.ObjectMeta.Namespace).Delete(c.ctx, c.TempDestPVC.Name, c.getDeleteOptions())
 	if err != nil {
 		c.log.WithError(err).Warning("failed to delete temporary destination pvc")
 		return c.Cleanup()
