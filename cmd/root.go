@@ -1,33 +1,43 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"beryju.org/korb/v2/pkg/config"
 	"beryju.org/korb/v2/pkg/migrator"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/util/homedir"
 )
 
-var kubeConfig string
-var sourceNamespace string
-var strategy string
+var (
+	kubeConfig      string
+	sourceNamespace string
+	strategy        string
+)
 
-var pvcNewStorageClass string
-var pvcNewSize string
-var pvcNewName string
-var pvcNewNamespace string
-var pvcNewAccessModes []string
+var (
+	pvcNewStorageClass string
+	pvcNewSize         string
+	pvcNewName         string
+	pvcNewNamespace    string
+	pvcNewAccessModes  []string
+)
 
-var force bool
-var skipWaitPVCBind bool
-var tolerateAllNodes bool
-var timeout string
+var (
+	force            bool
+	skipWaitPVCBind  bool
+	tolerateAllNodes bool
+	timeout          string
+	copyTimeout      string
+)
 
 var Version string
 
@@ -37,52 +47,69 @@ var rootCmd = &cobra.Command{
 	Version: Version,
 	Long:    `Move data between Kubernetes PVCs on different Storage Classes.`,
 	Args:    cobra.MinimumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		var t *time.Duration
-		if timeout != "" {
-			_t, err := time.ParseDuration(timeout)
-			if err != nil {
-				log.WithError(err).Panic("Failed to parse custom duration")
-				return
-			}
-			t = &_t
+	Run:     rootCmdRun,
+}
+
+func rootCmdRun(cmd *cobra.Command, args []string) {
+	var t *time.Duration
+	if timeout != "" {
+		_t, err := time.ParseDuration(timeout)
+		if err != nil {
+			log.WithError(err).Panic("Failed to parse custom duration")
+			return
 		}
-		for _, pvc := range args {
-			m := migrator.New(kubeConfig, strategy, tolerateAllNodes)
-			m.Force = force
-			m.WaitForTempDestPVCBind = skipWaitPVCBind
-			m.Timeout = t
+		t = &_t
+	}
 
-			// We can only support operating in a single namespace currently
-			// Since cross-namespace PVC mounts are not a thing
-			// we'd have to transfer the data over the network, which uh
-			// I don't really feel like implementing it
-			if sourceNamespace != "" {
-				m.SourceNamespace = sourceNamespace
-				m.DestNamespace = sourceNamespace
-			}
-			// if pvcNewNamespace != "" {
-			// 	m.DestNamespace = pvcNewNamespace
-			// }
-
-			m.DestPVCSize = pvcNewSize
-			m.DestPVCStorageClass = pvcNewStorageClass
-			m.DestPVCName = pvcNewName
-			m.DestPVCAccessModes = pvcNewAccessModes
-
-			m.SourcePVCName = pvc
-			m.Run()
-			if len(args) > 1 {
-				fmt.Println("=====================")
-			}
+	var cT *time.Duration
+	if copyTimeout != "" {
+		_cT, err := time.ParseDuration(copyTimeout)
+		if err != nil {
+			log.WithError(err).Panic("Failed to parse custom copy timeout")
+			return
 		}
-	},
+		cT = &_cT
+	}
+
+	for _, pvc := range args {
+		m := migrator.New(cmd.Context(), kubeConfig, strategy, tolerateAllNodes)
+		m.Force = force
+		m.WaitForTempDestPVCBind = skipWaitPVCBind
+		m.Timeout = t
+		m.CopyTimeout = cT
+
+		// We can only support operating in a single namespace currently
+		// Since cross-namespace PVC mounts are not a thing
+		// we'd have to transfer the data over the network, which uh
+		// I don't really feel like implementing it
+		if sourceNamespace != "" {
+			m.SourceNamespace = sourceNamespace
+			m.DestNamespace = sourceNamespace
+		}
+		// if pvcNewNamespace != "" {
+		// 	m.DestNamespace = pvcNewNamespace
+		// }
+
+		m.DestPVCSize = pvcNewSize
+		m.DestPVCStorageClass = pvcNewStorageClass
+		m.DestPVCName = pvcNewName
+		m.DestPVCAccessModes = pvcNewAccessModes
+
+		m.SourcePVCName = pvc
+		m.Run()
+		if len(args) > 1 {
+			fmt.Println("=====================")
+		}
+	}
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	ctx, cncl := signal.NotifyContext(context.Background(), os.Kill, os.Interrupt)
+	defer cncl()
+
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
@@ -111,4 +138,5 @@ func init() {
 	rootCmd.Flags().StringVar(&config.ContainerImage, "container-image", config.ContainerImage, "Image to use for moving jobs")
 	rootCmd.Flags().StringVar(&strategy, "strategy", "", "Strategy to use, by default will try to auto-select")
 	rootCmd.Flags().StringVar(&timeout, "timeout", "", "Overwrite auto-generated timeout (by default 60s for Pod to start, copy timeout is based on PVC size)")
+	rootCmd.Flags().StringVar(&copyTimeout, "copyTimeout", "", "Overwrite auto-generated copy timeout (by default 60s/GB of volume data)")
 }

@@ -24,7 +24,7 @@ func (m *MoverJob) getPods(ctx context.Context) []v1.Pod {
 func (m *MoverJob) WaitForRunning(timeout time.Duration) *v1.Pod {
 	// First we wait for all pods to be running
 	var runningPod v1.Pod
-	err := wait.PollUntilContextTimeout(context.Background(), 2*time.Second, timeout, true, func(ctx context.Context) (bool, error) {
+	err := wait.PollUntilContextTimeout(m.ctx, 2*time.Second, timeout, true, func(ctx context.Context) (bool, error) {
 		pods := m.getPods(ctx)
 		if len(pods) != 1 {
 			return false, nil
@@ -52,7 +52,7 @@ func (m *MoverJob) Wait(startTimeout time.Duration, moveTimeout time.Duration) e
 	runningPod := *pod
 	go m.followLogs(runningPod)
 
-	err := wait.PollUntilContextTimeout(context.Background(), 2*time.Second, moveTimeout, true, func(ctx context.Context) (bool, error) {
+	err := wait.PollUntilContextTimeout(m.ctx, 2*time.Second, moveTimeout, true, func(ctx context.Context) (bool, error) {
 		job, err := m.kClient.BatchV1().Jobs(m.Namespace).Get(ctx, m.kJob.Name, metav1.GetOptions{})
 		if err != nil {
 			return false, err

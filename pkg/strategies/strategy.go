@@ -1,6 +1,7 @@
 package strategies
 
 import (
+	"context"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -17,20 +18,33 @@ type BaseStrategy struct {
 	log              *log.Entry
 	tolerateAllNodes bool
 	timeout          time.Duration
+	copyTimeout      *time.Duration
+	ctx              context.Context
 }
 
-func NewBaseStrategy(config *rest.Config, client *kubernetes.Clientset, tolerateAllNodes bool, timeout *time.Duration) BaseStrategy {
+type BaseStrategyOpts struct {
+	Config           *rest.Config
+	Client           *kubernetes.Clientset
+	TolerateAllNodes bool
+	Timeout          *time.Duration
+	CopyTimeout      *time.Duration
+	Ctx              context.Context
+}
+
+func NewBaseStrategy(opts *BaseStrategyOpts) BaseStrategy {
 	var t time.Duration
-	if timeout == nil {
+	if opts.Timeout == nil {
 		t = 60 * time.Second
 	} else {
-		t = *timeout
+		t = *opts.Timeout
 	}
 	return BaseStrategy{
-		kConfig:          config,
-		kClient:          client,
-		tolerateAllNodes: tolerateAllNodes,
+		kConfig:          opts.Config,
+		kClient:          opts.Client,
+		tolerateAllNodes: opts.TolerateAllNodes,
 		timeout:          t,
+		copyTimeout:      opts.CopyTimeout,
+		ctx:              opts.Ctx,
 		log:              log.WithField("component", "strategy"),
 	}
 }
