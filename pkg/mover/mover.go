@@ -5,9 +5,10 @@ import (
 	"io"
 	"os"
 
-	"beryju.org/korb/v2/pkg/config"
 	"github.com/goware/prefixer"
 	log "github.com/sirupsen/logrus"
+
+	"beryju.org/korb/v2/pkg/config"
 
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -26,8 +27,10 @@ const (
 	MoverTypeSleep MoverType = "sleep"
 )
 
-const SourceMount = "/source"
-const DestMount = "/dest"
+const (
+	SourceMount = "/source"
+	DestMount   = "/dest"
+)
 
 type MoverJob struct {
 	Name         string
@@ -41,14 +44,16 @@ type MoverJob struct {
 	mode             MoverType
 	log              *log.Entry
 	tolerateAllNodes bool
+	ctx              context.Context
 }
 
-func NewMoverJob(client *kubernetes.Clientset, mode MoverType, tolerateAllNodes bool) *MoverJob {
+func NewMoverJob(ctx context.Context, client *kubernetes.Clientset, mode MoverType, tolerateAllNodes bool) *MoverJob {
 	return &MoverJob{
 		kClient:          client,
 		log:              log.WithField("component", "mover-job"),
 		tolerateAllNodes: tolerateAllNodes,
 		mode:             mode,
+		ctx:              ctx,
 	}
 }
 
@@ -126,7 +131,7 @@ func (m *MoverJob) Start() *MoverJob {
 		}
 	}
 
-	j, err := m.kClient.BatchV1().Jobs(m.Namespace).Create(context.Background(), job, metav1.CreateOptions{})
+	j, err := m.kClient.BatchV1().Jobs(m.Namespace).Create(m.ctx, job, metav1.CreateOptions{})
 	if err != nil {
 		panic(err)
 	}
@@ -139,7 +144,7 @@ func (m *MoverJob) followLogs(pod corev1.Pod) {
 		Follow:    true,
 		Container: ContainerName,
 	})
-	podLogs, err := req.Stream(context.Background())
+	podLogs, err := req.Stream(m.ctx)
 	if err != nil {
 		m.log.WithError(err).Warning("error opening log stream")
 		return
@@ -149,6 +154,11 @@ func (m *MoverJob) followLogs(pod corev1.Pod) {
 
 	for {
 		_, err := io.Copy(os.Stdout, prefixReader)
+		if err != nil && err == io.EOF {
+			m.log.Debug("log stream complete")
+			break
+		}
+
 		if err != nil {
 			m.log.WithError(err).Warning("failed to copy")
 		}
@@ -163,14 +173,14 @@ func (m *MoverJob) getDeleteOptions() metav1.DeleteOptions {
 }
 
 func (m *MoverJob) Cleanup() error {
-	err := m.kClient.BatchV1().Jobs(m.Namespace).Delete(context.Background(), m.Name, m.getDeleteOptions())
+	err := m.kClient.BatchV1().Jobs(m.Namespace).Delete(m.ctx, m.Name, m.getDeleteOptions())
 	if err != nil {
 		m.log.WithError(err).WithField("name", m.Name).Debug("Failed to delete job")
 		return err
 	}
-	pods := m.getPods(context.Background())
+	pods := m.getPods(m.ctx)
 	for _, pod := range pods {
-		err := m.kClient.CoreV1().Pods(m.Namespace).Delete(context.Background(), pod.Name, m.getDeleteOptions())
+		err := m.kClient.CoreV1().Pods(m.Namespace).Delete(m.ctx, pod.Name, m.getDeleteOptions())
 		if err != nil {
 			m.log.WithError(err).WithField("name", pod.Name).Warning("failed to delete pod")
 		}
