@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"os"
+	"errors"
 
 	"github.com/goware/prefixer"
 	log "github.com/sirupsen/logrus"
@@ -154,7 +155,7 @@ func (m *MoverJob) followLogs(pod corev1.Pod) {
 
 	for {
 		_, err := io.Copy(os.Stdout, prefixReader)
-		if err != nil && err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			m.log.Debug("log stream complete")
 			break
 		}
