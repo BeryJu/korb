@@ -1,6 +1,9 @@
 module beryju.org/korb/v2
 
-go 1.23
+go 1.23.0
+
+toolchain go1.23.5
+
 require (
 	github.com/goware/prefixer v0.0.0-20160118172347-395022866408
 	github.com/schollz/progressbar/v3 v3.18.0
