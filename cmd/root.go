@@ -32,6 +32,7 @@ var (
 )
 
 var (
+	debug            bool
 	force            bool
 	skipWaitPVCBind  bool
 	tolerateAllNodes bool
@@ -51,6 +52,10 @@ var rootCmd = &cobra.Command{
 }
 
 func rootCmdRun(cmd *cobra.Command, args []string) {
+	if debug {
+		log.SetLevel(log.DebugLevel)
+	}
+
 	var t *time.Duration
 	if timeout != "" {
 		_t, err := time.ParseDuration(timeout)
@@ -116,13 +121,14 @@ func Execute() {
 }
 
 func init() {
-	log.SetLevel(log.DebugLevel)
+	log.SetLevel(log.InfoLevel)
 
 	if home := homedir.HomeDir(); home != "" {
 		rootCmd.Flags().StringVar(&kubeConfig, "kube-config", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
 	} else {
 		rootCmd.Flags().StringVar(&kubeConfig, "kube-config", "", "absolute path to the kubeconfig file")
 	}
+	rootCmd.Flags().BoolVar(&debug, "debug", false, "enable debug logging")
 	rootCmd.Flags().StringVar(&sourceNamespace, "source-namespace", "", "Namespace where the old PVCs reside. If empty, the namespace from your kubeconfig file will be used.")
 
 	rootCmd.Flags().StringVar(&pvcNewStorageClass, "new-pvc-storage-class", "", "Storage class to use for the new PVC. If empty, the storage class of the source will be used.")
@@ -139,4 +145,5 @@ func init() {
 	rootCmd.Flags().StringVar(&strategy, "strategy", "", "Strategy to use, by default will try to auto-select")
 	rootCmd.Flags().StringVar(&timeout, "timeout", "", "Overwrite auto-generated timeout (by default 60s for Pod to start, copy timeout is based on PVC size)")
 	rootCmd.Flags().StringVar(&copyTimeout, "copyTimeout", "", "Overwrite auto-generated copy timeout (by default 60s/GB of volume data)")
+
 }
