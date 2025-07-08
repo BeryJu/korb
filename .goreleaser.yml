@@ -25,23 +25,28 @@ builds:
   binary: '{{ .ProjectName }}'
 archives:
 - id: raw
-  format: binary
+  formats: binary
   name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}'
 - id: tar
-  format: tar.gz
+  formats: tar.gz
   name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
 checksum:
   name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
   algorithm: sha256
-brews:
-  - ids:
-      - raw
-    repository:
-      owner: beryju
-      name: homebrew-tap
-    commit_author:
-      name: goreleaserbot
-      email: goreleaser@beryju.org
-    homepage: 'https://github.com/beryju/korb'
-    description: 'Move Kubernetes PVCs between Storage Classes and Namespaces'
-    directory: Formula
+homebrew_casks:
+- ids:
+    - raw
+  commit_author:
+    name: goreleaserbot
+    email: goreleaser@beryju.org
+  repository:
+    owner: beryju
+    name: homebrew-tap
+  homepage: 'https://github.com/beryju/{{ .ProjectName }}'
+  description: 'Move Kubernetes PVCs between Storage Classes and Namespaces'
+  hooks:
+    post:
+      install: |
+        if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
+          system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/{{ .ProjectName }}"]
+        end
