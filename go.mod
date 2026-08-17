@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/goware/prefixer v0.0.0-20160118172347-395022866408
 	github.com/schollz/progressbar/v3 v3.19.1
-	github.com/sirupsen/logrus v1.9.4
+	github.com/sirupsen/logrus v1.10.0
 	github.com/spf13/cobra v1.10.2
 	k8s.io/api v0.36.3
 	k8s.io/apimachinery v0.36.3
